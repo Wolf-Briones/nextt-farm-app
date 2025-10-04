@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import InteractiveFarmMap from "@/components/game/livestock/InteractiveFarmMap";
+import AnimalAlertPanel from "@/components/game/livestock/AnimalAlertPanel";
+import ProductionPanel from "@/components/game/livestock/ProductionPanell";
 
 interface Animal {
     id: string;
@@ -35,6 +37,29 @@ interface NASAEnvironmentData {
     uvIndex: number;
     windSpeed: number;
     heatStress: 'low' | 'medium' | 'high' | 'extreme';
+}
+
+interface AnimalAlert {
+    id: string;
+    type: 'health' | 'heat' | 'hunger' | 'thirst' | 'stress';
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    animalName: string;
+    message: string;
+    timestamp: string;
+    nasaData?: {
+        temperature?: number;
+        ndvi?: number;
+        heatStress?: string;
+    };
+}
+
+interface ProductionData {
+    dailyMilk: number;
+    eggCount: number;
+    meatProjection: number;
+    feedEfficiency: number;
+    carbonFootprint: number;
+    nasaOptimization: number;
 }
 
 // Sistema de tiempo acelerado del juego
@@ -82,22 +107,24 @@ const useNASAData = (gameTime: GameTime) => {
         const tempVariation = Math.sin((gameTime.hour - 6) * Math.PI / 12) * 12;
         const currentTemp = baseTemp + tempVariation + Math.random() * 2;
 
-        const tempStress = currentTemp > 35 ? -0.1 : 0;
-        const moistureBonus = nasaData.soilMoisture > 40 ? 0.05 : -0.05;
+        setNasaData(prev => {
+            const tempStress = currentTemp > 35 ? -0.1 : 0;
+            const moistureBonus = prev.soilMoisture > 40 ? 0.05 : -0.05;
 
-        setNasaData(prev => ({
-            temperature: Math.max(15, Math.min(45, currentTemp)),
-            soilMoisture: Math.max(20, Math.min(80, prev.soilMoisture + (Math.random() - 0.5) * 3)),
-            ndvi: Math.max(0.3, Math.min(0.9, 0.72 + tempStress + moistureBonus + (Math.random() - 0.5) * 0.1)),
-            humidity: Math.max(30, Math.min(90, 65 + (Math.random() - 0.5) * 10)),
-            uvIndex: gameTime.hour >= 6 && gameTime.hour <= 18 ?
-                Math.max(0, Math.sin((gameTime.hour - 6) * Math.PI / 12) * 10) : 0,
-            windSpeed: Math.max(5, Math.min(25, prev.windSpeed + (Math.random() - 0.5) * 3)),
-            heatStress: currentTemp > 38 ? 'extreme' :
-                currentTemp > 35 ? 'high' :
-                    currentTemp > 30 ? 'medium' : 'low'
-        }));
-    }, [gameTime.hour]);
+            return {
+                temperature: Math.max(15, Math.min(45, currentTemp)),
+                soilMoisture: Math.max(20, Math.min(80, prev.soilMoisture + (Math.random() - 0.5) * 3)),
+                ndvi: Math.max(0.3, Math.min(0.9, 0.72 + tempStress + moistureBonus + (Math.random() - 0.5) * 0.1)),
+                humidity: Math.max(30, Math.min(90, 65 + (Math.random() - 0.5) * 10)),
+                uvIndex: gameTime.hour >= 6 && gameTime.hour <= 18 ?
+                    Math.max(0, Math.sin((gameTime.hour - 6) * Math.PI / 12) * 10) : 0,
+                windSpeed: Math.max(5, Math.min(25, prev.windSpeed + (Math.random() - 0.5) * 3)),
+                heatStress: currentTemp > 38 ? 'extreme' :
+                    currentTemp > 35 ? 'high' :
+                        currentTemp > 30 ? 'medium' : 'low'
+            };
+        });
+    }, [gameTime.hour]); // ✅ Solo depende de gameTime.hour
 
     return nasaData;
 };
@@ -119,6 +146,11 @@ const useAnimalSimulation = (gameTime: GameTime, nasaData: NASAEnvironmentData) 
             id: 'pig_001', name: 'Porky', type: 'pig', health: 92, temperature: 39.0,
             stress: 15, hunger: 20, thirst: 30, activity: 'feeding',
             position: { x: 230, y: 320 }, productivity: 90, age: 60, selected: false
+        },
+        {
+            id: 'chicken_001', name: 'Clucky', type: 'chicken', health: 94, temperature: 40.5,
+            stress: 12, hunger: 35, thirst: 28, activity: 'feeding',
+            position: { x: 280, y: 180 }, productivity: 92, age: 45, selected: false
         },
         {
             id: 'sheep_001', name: 'Woolly', type: 'sheep', health: 96, temperature: 38.3,
@@ -178,7 +210,6 @@ const useAnimalSimulation = (gameTime: GameTime, nasaData: NASAEnvironmentData) 
                     if (target) {
                         updatedAnimal.target = target;
                         updatedAnimal.activity = 'moving';
-                        // Simular movimiento actualizar posición después de un tiempo
                         setTimeout(() => {
                             setAnimals(current => current.map(a =>
                                 a.id === animalId ? { ...a, position: target, target: undefined, activity: 'grazing' } : a
@@ -289,6 +320,11 @@ const NASADataPanel = ({ data }: { data: NASAEnvironmentData }) => {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
+                <div className="bg-gray-600 p-3 rounded">
+                    <div className="text-orange-400 text-lg font-bold">{data.temperature.toFixed(1)}°C</div>
+                    <div className="text-xs text-gray-400">Temperatura</div>
+                </div>
+
                 <div className="bg-gray-600 p-3 rounded">
                     <div className="text-blue-400 text-lg font-bold">{data.soilMoisture.toFixed(0)}%</div>
                     <div className="text-xs text-gray-400">Humedad Suelo</div>
@@ -443,6 +479,93 @@ export default function AnimalInterface() {
     const avgProductivity = animals.reduce((sum, animal) => sum + animal.productivity, 0) / animals.length;
     const highStressAnimals = animals.filter(animal => animal.stress > 70).length;
 
+    // Estados para alertas y producción
+    const [animalAlerts, setAnimalAlerts] = useState<AnimalAlert[]>([]);
+    const [productionData] = useState<ProductionData>({
+        dailyMilk: 45,
+        eggCount: 24,
+        meatProjection: 180,
+        feedEfficiency: 87,
+        carbonFootprint: -12,
+        nasaOptimization: 78
+    });
+
+    // Generar alertas dinámicamente basadas en el estado de los animales
+    useEffect(() => {
+        const newAlerts: AnimalAlert[] = [];
+
+        animals.forEach(animal => {
+            // Alerta de estrés térmico
+            if (nasaData.heatStress === 'extreme' || nasaData.heatStress === 'high') {
+                newAlerts.push({
+                    id: `heat_${animal.id}`,
+                    type: 'heat',
+                    severity: nasaData.heatStress === 'extreme' ? 'critical' : 'high',
+                    animalName: animal.name,
+                    message: 'Estrés térmico detectado por sensores NASA',
+                    timestamp: 'Ahora',
+                    nasaData: {
+                        temperature: nasaData.temperature,
+                        heatStress: nasaData.heatStress
+                    }
+                });
+            }
+
+            // Alerta de hambre
+            if (animal.hunger > 70) {
+                newAlerts.push({
+                    id: `hunger_${animal.id}`,
+                    type: 'hunger',
+                    severity: animal.hunger > 85 ? 'high' : 'medium',
+                    animalName: animal.name,
+                    message: nasaData.ndvi < 0.5 ? 'Bajo NDVI en zona de pastoreo' : 'Nivel de hambre elevado',
+                    timestamp: 'Hace 5 min',
+                    nasaData: {
+                        ndvi: nasaData.ndvi
+                    }
+                });
+            }
+
+            // Alerta de sed
+            if (animal.thirst > 70) {
+                newAlerts.push({
+                    id: `thirst_${animal.id}`,
+                    type: 'thirst',
+                    severity: animal.thirst > 85 ? 'high' : 'medium',
+                    animalName: animal.name,
+                    message: 'Nivel de sed elevado',
+                    timestamp: 'Hace 10 min'
+                });
+            }
+
+            // Alerta de estrés
+            if (animal.stress > 70) {
+                newAlerts.push({
+                    id: `stress_${animal.id}`,
+                    type: 'stress',
+                    severity: animal.stress > 85 ? 'critical' : 'high',
+                    animalName: animal.name,
+                    message: 'Nivel de estrés crítico',
+                    timestamp: 'Hace 2 min'
+                });
+            }
+
+            // Alerta de salud
+            if (animal.health < 60) {
+                newAlerts.push({
+                    id: `health_${animal.id}`,
+                    type: 'health',
+                    severity: animal.health < 40 ? 'critical' : 'high',
+                    animalName: animal.name,
+                    message: 'Salud deteriorada - Atención requerida',
+                    timestamp: 'Hace 15 min'
+                });
+            }
+        });
+
+        setAnimalAlerts(newAlerts.slice(0, 5)); // Limitar a las 5 alertas más importantes
+    }, [animals, nasaData]);
+
     return (
         <div className="h-full space-y-4">
             {/* Header */}
@@ -498,6 +621,12 @@ export default function AnimalInterface() {
                     <NASADataPanel data={nasaData} />
                     <AnimalDetailsPanel animal={selectedAnimal} />
                 </div>
+            </div>
+
+            {/* Sección inferior con Alertas y Producción */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <AnimalAlertPanel alerts={animalAlerts} />
+                <ProductionPanel data={productionData} />
             </div>
 
             {/* Footer con información del sistema */}
