@@ -319,8 +319,8 @@ const StepCard = ({ step, isActive, onClick, sectionColor }: {
 }) => (
   <motion.div
     className={`relative rounded-xl border-2 cursor-pointer transition-all duration-300 overflow-hidden ${isActive
-        ? 'border-cyan-400 shadow-2xl shadow-cyan-500/20 scale-105'
-        : 'border-gray-600 hover:border-gray-400 hover:scale-102'
+      ? 'border-cyan-400 shadow-2xl shadow-cyan-500/20 scale-105'
+      : 'border-gray-600 hover:border-gray-400 hover:scale-102'
       }`}
     whileHover={{ y: -5 }}
     whileTap={{ scale: 0.98 }}
@@ -620,8 +620,8 @@ function StepsGame() {
             <motion.button
               key={tab.key}
               className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${activeSection === tab.key
-                  ? `bg-gradient-to-r ${tab.color} text-white shadow-lg`
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                ? `bg-gradient-to-r ${tab.color} text-white shadow-lg`
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                 }`}
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
@@ -737,14 +737,16 @@ export default function GameLayout() {
           <motion.div
             key={mode.id}
             className={`relative rounded-xl p-6 border-2 transition-all duration-300 cursor-pointer group ${selectedMode === mode.id
-                ? `${mode.color} bg-gray-800 shadow-lg`
-                : 'bg-gray-800 border-gray-700 hover:border-gray-500 hover:shadow-lg'
+              ? `${mode.color} bg-gray-800 shadow-lg`
+              : 'bg-gray-800 border-gray-700 hover:border-gray-500 hover:shadow-lg'
               }`}
             whileHover={{ scale: 1.05, y: -5 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => {
               if (mode.id === "cultivar") {
                 router.push("/game/cultivos");
+              } else if (mode.id === "cuidar") {
+                router.push("/game/ganaderia");
               } else {
                 setSelectedMode(mode.id);
               }
@@ -770,9 +772,10 @@ export default function GameLayout() {
             </div>
 
             {/* Indicador activo mejorado */}
-            {mode.id === 'cultivar' && selectedMode === mode.id && (
+            {(mode.id === 'cultivar' || mode.id === 'cuidar') && selectedMode === mode.id && (
               <motion.div
-                className="absolute -top-2 -right-2 w-4 h-4 bg-green-500 rounded-full border-2 border-gray-900"
+                className={`absolute -top-2 -right-2 w-4 h-4 rounded-full border-2 border-gray-900 ${mode.id === 'cultivar' ? 'bg-green-500' : 'bg-orange-500'
+                  }`}
                 animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
                 transition={{ duration: 2, repeat: Infinity }}
               />
