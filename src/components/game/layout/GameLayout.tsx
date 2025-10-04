@@ -747,7 +747,9 @@ export default function GameLayout() {
                 router.push("/game/cultivos");
               } else if (mode.id === "cuidar") {
                 router.push("/game/ganaderia");
-              } else {
+              } else if (mode.id === "investigar") {
+                router.push("/game/investigar");
+              }else {
                 setSelectedMode(mode.id);
               }
             }}
