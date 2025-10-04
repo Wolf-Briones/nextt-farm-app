@@ -1,3 +1,4 @@
+// SpaceFarmIntegrated.tsx - VERSIÓN COMPLETA INTEGRADA
 "use client";
 
 import { useState, useEffect } from "react";
@@ -6,13 +7,14 @@ import { ParcelMap } from "@/components/game/crops/sowing/ParcelMap";
 import { CropSelector } from "@/components/game/crops/sowing/CropSelector";
 import { DecisionCards } from "@/components/game/crops/sowing/DecisionCards";
 import MiniGame from "@/components/game/crops/minigames/MinigamesSystem";
-
 import RewardsSystem from "@/components/game/crops/RewardsSystem";
 import UpdateTime from "@/components/game/crops/UpdateTime";
 import { useNASAData, type UseNASADataReturn } from "@/hooks/useNASAData";
 import { useGameLogic } from "@/hooks/useGameLogic";
 import { useAutoWatering } from "@/hooks/useAutoWatering";
 import type { ParcelState, CropType } from "@/lib/types/crops";
+import EarlyWarning, { type RegionConfig, type WeatherData } from "@/components/game/crops/alerts/EarlyWarning";
+import ActiveAlerts from "@/components/game/crops/alerts/ActiveAlerts";
 
 type GameMode = 'cultivar' | 'minijuegos' | 'logros' | 'alertas';
 
@@ -53,6 +55,9 @@ const DynamicRightPanel = ({
     parcels,
     onApplyAction,
     onAutoWatering,
+    currentMoney,
+    selectedAlertRegion,
+    selectedAlertWeather,
 }: {
     mode: GameMode;
     nasaData: UseNASADataReturn['nasaData'];
@@ -60,6 +65,8 @@ const DynamicRightPanel = ({
     onApplyAction: (parcelId: number, action: string, cost: number) => void;
     onAutoWatering: (parcelId: number) => void;
     currentMoney: number;
+    selectedAlertRegion: RegionConfig | null;
+    selectedAlertWeather: WeatherData | null;
 }) => {
     const getRightPanelContent = () => {
         switch (mode) {
@@ -76,7 +83,20 @@ const DynamicRightPanel = ({
                     )
                 };
 
-
+            case 'alertas':
+                if (selectedAlertRegion && selectedAlertWeather) {
+                    return {
+                        title: '🚨 Alertas y Decisiones',
+                        content: (
+                            <ActiveAlerts
+                                weatherData={selectedAlertWeather}
+                                regionConfig={selectedAlertRegion}
+                                isLoading={false}
+                            />
+                        )
+                    };
+                }
+                
 
             default:
                 return {
@@ -107,7 +127,7 @@ const DynamicRightPanel = ({
                 <h3 className="text-lg font-bold text-cyan-400 mb-4 flex items-center gap-2">
                     {panelContent.title}
                 </h3>
-                <div className="h-[calc(100%-60px)]">
+                <div className="h-[calc(100%-60px)] overflow-y-auto">
                     {panelContent.content}
                 </div>
             </motion.div>
@@ -235,7 +255,8 @@ const DynamicContentPanel = ({
     onSelectParcel,
     autoWateringParcels,
     onManualWatering,
-    playerMoney
+    playerMoney,
+    onRegionChange,
 }: {
     mode: GameMode;
     parcels: ParcelState[];
@@ -245,6 +266,7 @@ const DynamicContentPanel = ({
     autoWateringParcels: Set<number>;
     onManualWatering: (parcelId: number, event: React.MouseEvent) => void;
     playerMoney: number;
+    onRegionChange: (region: RegionConfig, weather: WeatherData) => void;
 }) => {
     const getModeContent = () => {
         switch (mode) {
@@ -284,7 +306,7 @@ const DynamicContentPanel = ({
             case 'alertas':
                 return {
                     title: '🚨 Sistema de Alertas',
-                    content: <RewardsSystem />
+                    content: <EarlyWarning onRegionChange={onRegionChange} />
                 };
             default:
                 return {
@@ -347,6 +369,10 @@ export default function SpaceFarmIntegrated() {
     const [notifications, setNotifications] = useState<NotificationSystem>({ alerts: [] });
     const [selectedCrop, setSelectedCrop] = useState<CropType | null>(null);
 
+    // ESTADOS PARA SISTEMA DE ALERTAS
+    const [selectedAlertRegion, setSelectedAlertRegion] = useState<RegionConfig | null>(null);
+    const [selectedAlertWeather, setSelectedAlertWeather] = useState<WeatherData | null>(null);
+
     const { nasaData, isLoading: nasaLoading, userLocation } = useNASAData({ enableGeolocation: true });
 
     const [localParcels] = useState<ParcelState[]>(createInitialParcels);
@@ -364,7 +390,6 @@ export default function SpaceFarmIntegrated() {
         nasaData.soilMoisture
     );
 
-    // Sistema de riego automático corregido
     const { autoWateringParcels, activateAutoWatering, registerManualAction } = useAutoWatering(
         parcels,
         setParcels,
@@ -372,7 +397,12 @@ export default function SpaceFarmIntegrated() {
         localMoney
     );
 
-    // Verificar si hay algún cultivo plantado
+    // CALLBACK PARA MANEJAR CAMBIO DE REGIÓN
+    const handleRegionChange = (region: RegionConfig, weather: WeatherData) => {
+        setSelectedAlertRegion(region);
+        setSelectedAlertWeather(weather);
+    };
+
     useEffect(() => {
         const hasCrops = parcels.some(p => p.crop !== null);
         setHasAnyPlantedCrop(hasCrops);
@@ -396,7 +426,6 @@ export default function SpaceFarmIntegrated() {
         }, 5000);
     };
 
-    // Detectar cambios de dinero por IoT
     useEffect(() => {
         if (localMoney < previousMoney && (previousMoney - localMoney) === 5) {
             const parcelRegada = parcels.find(p =>
@@ -415,7 +444,6 @@ export default function SpaceFarmIntegrated() {
         setPreviousMoney(localMoney);
     }, [localMoney, previousMoney, parcels, autoWateringParcels]);
 
-    // Alertas de dinero
     useEffect(() => {
         if (localMoney === 19 && previousMoney >= 20) {
             addNotification({
@@ -593,6 +621,7 @@ export default function SpaceFarmIntegrated() {
                         autoWateringParcels={autoWateringParcels}
                         onManualWatering={handleManualWatering}
                         playerMoney={localMoney}
+                        onRegionChange={handleRegionChange}
                     />
                 </div>
 
@@ -602,12 +631,13 @@ export default function SpaceFarmIntegrated() {
                         nasaData={nasaData}
                         parcels={parcels}
                         currentMoney={localMoney}
+                        selectedAlertRegion={selectedAlertRegion}
+                        selectedAlertWeather={selectedAlertWeather}
                         onApplyAction={(parcelId, action, cost) => {
                             const parcel = parcels.find(p => p.id === parcelId);
 
                             if (action === 'harvest' && parcel && parcel.crop && parcel.growthStage >= 100) {
                                 applyAction(parcelId, action, cost, localMoney, updateMoney, updateXP, localXP);
-
                                 updateXP(localXP + 10, localXP);
 
                                 addNotification({
@@ -673,7 +703,7 @@ export default function SpaceFarmIntegrated() {
                         >
                             <div className="text-2xl mb-1">{mode.icon}</div>
                             <div className="text-white text-xs font-semibold">{mode.title}</div>
-                            <div className="text-gray-400 text-xs">{mode.desc}</div>
+                            
                         </motion.button>
                     ))}
                 </div>
