@@ -1,4 +1,3 @@
-// SpaceFarmIntegrated.tsx - VERSIÓN COMPLETA INTEGRADA
 "use client";
 
 import { useState, useEffect } from "react";
@@ -8,13 +7,14 @@ import { CropSelector } from "@/components/game/crops/sowing/CropSelector";
 import { DecisionCards } from "@/components/game/crops/sowing/DecisionCards";
 import MiniGame from "@/components/game/crops/minigames/MinigamesSystem";
 import RewardsSystem from "@/components/game/crops/rewards/RewardsSystem";
-import UpdateTime from "@/components/game/crops/UpdateTime";
+import UpdateTime from "@/components/game/layout/UpdateTime";
 import { useNASAData, type UseNASADataReturn } from "@/hooks/useNASAData";
 import { useGameLogic } from "@/hooks/useGameLogic";
 import { useAutoWatering } from "@/hooks/useAutoWatering";
 import type { ParcelState, CropType } from "@/lib/types/crops";
 import EarlyWarning, { type RegionConfig, type WeatherData } from "@/components/game/crops/alerts/EarlyWarning";
 import ActiveAlerts from "@/components/game/crops/alerts/ActiveAlerts";
+import { calculateHarvestYield } from "@/lib/utils/calculations";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
@@ -98,7 +98,6 @@ const DynamicRightPanel = ({
                         )
                     };
                 }
-
 
             default:
                 return {
@@ -255,6 +254,7 @@ const DynamicContentPanel = ({
     selectedCrop,
     onSelectCrop,
     onSelectParcel,
+    onHarvestParcel,
     autoWateringParcels,
     onManualWatering,
     playerMoney,
@@ -265,6 +265,7 @@ const DynamicContentPanel = ({
     selectedCrop: CropType | null;
     onSelectCrop: (crop: CropType) => void;
     onSelectParcel: (parcelId: number) => void;
+    onHarvestParcel: (parcelId: number) => void;
     autoWateringParcels: Set<number>;
     onManualWatering: (parcelId: number, event: React.MouseEvent) => void;
     playerMoney: number;
@@ -285,10 +286,15 @@ const DynamicContentPanel = ({
                             <div className="flex-1">
                                 <ParcelMap
                                     parcels={parcels}
-                                    onSelectParcel={onSelectParcel}
+                                    onSelectParcel={(id) => {
+                                        if (id !== null) {
+                                            onSelectParcel(id);
+                                        }
+                                    }}
                                     selectedCrop={selectedCrop}
                                     autoWateringParcels={autoWateringParcels}
                                     onManualWatering={onManualWatering}
+                                    onHarvestParcel={onHarvestParcel}
                                 />
                             </div>
                         </div>
@@ -347,11 +353,12 @@ const NotificationSystem = ({ notifications }: { notifications: NotificationSyst
                 {notifications.alerts.map((alert) => (
                     <motion.div
                         key={alert.id}
-                        className={`p-4 rounded-lg border-l-4 max-w-sm shadow-lg ${alert.type === 'success' ? 'bg-green-900/90 border-green-500' :
+                        className={`p-4 rounded-lg border-l-4 max-w-sm shadow-lg ${
+                            alert.type === 'success' ? 'bg-green-900/90 border-green-500' :
                             alert.type === 'warning' ? 'bg-yellow-900/90 border-yellow-500' :
-                                alert.type === 'error' ? 'bg-red-900/90 border-red-500' :
-                                    'bg-blue-900/90 border-blue-500'
-                            }`}
+                            alert.type === 'error' ? 'bg-red-900/90 border-red-500' :
+                            'bg-blue-900/90 border-blue-500'
+                        }`}
                         initial={{ opacity: 0, x: 100, scale: 0.8 }}
                         animate={{ opacity: 1, x: 0, scale: 1 }}
                         exit={{ opacity: 0, x: 100, scale: 0.8 }}
@@ -528,6 +535,79 @@ export default function SpaceFarmIntegrated() {
         });
     };
 
+    const handleHarvest = (parcelId: number) => {
+        const parcelToHarvest = parcels.find((p) => p.id === parcelId);
+
+        if (!parcelToHarvest || !parcelToHarvest.crop) {
+            console.warn(`No se puede cosechar: parcela ${parcelId} sin cultivo`);
+            return;
+        }
+
+        console.log(`🚜 Cosechando parcela ${parcelId}...`);
+
+        // Calcular recompensas
+        const totalReward = calculateHarvestYield(parcelToHarvest);
+        const xpGained = 50;
+
+        console.log(`💰 Recompensas: $${totalReward}, ${xpGained}XP`);
+
+        // Actualizar dinero y XP
+        updateMoney(localMoney + totalReward);
+        updateXP(localXP + xpGained, localXP);
+
+        // Notificación
+        addNotification({
+            type: 'success',
+            title: '🚜 ¡Cosecha Exitosa!',
+            message: `¡Parcela ${parcelId} cosechada! Ganaste $${totalReward} y ${xpGained}XP`
+        });
+
+        // Resetear la parcela
+        const updatedParcels = parcels.map((parcel) => {
+            if (parcel.id === parcelId) {
+                return {
+                    id: parcel.id,
+                    crop: null,
+                    plantedDate: null,
+                    growthStage: 0,
+                    health: 100,
+                    waterLevel: 80,
+                    fertilizerLevel: 50,
+                    pestLevel: Math.random() * 20,
+                    ndviValue: 0.45,
+                    soilMoisture: parcel.soilMoisture,
+                    temperature: parcel.temperature,
+                    isSelected: false,
+                    lastAction: `Cosechado: +$${totalReward}, +${xpGained}XP`,
+                    daysToHarvest: 0,
+                    hasPestsAppeared: false,
+                };
+            }
+            return parcel;
+        });
+
+        console.log("✅ Parcela reseteada, buscando otra para seleccionar...");
+
+        // Buscar otra parcela con cultivo
+        const otherParcelWithCrop = updatedParcels.find(
+            (p) => p.id !== parcelId && p.crop && p.growthStage < 100
+        );
+
+        // Seleccionar otra parcela si existe
+        const finalParcels = updatedParcels.map((parcel) => ({
+            ...parcel,
+            isSelected: otherParcelWithCrop ? parcel.id === otherParcelWithCrop.id : false,
+        }));
+
+        if (otherParcelWithCrop) {
+            console.log(`🎯 Seleccionando parcela ${otherParcelWithCrop.id}`);
+        } else {
+            console.log("🌱 No hay más parcelas con cultivos");
+        }
+
+        setParcels(finalParcels);
+    };
+
     const modes = [
         { id: 'cultivar' as GameMode, icon: '🌱', title: 'Cultivos', desc: 'NASA + Siembra', color: 'border-green-500' },
         { id: 'minijuegos' as GameMode, icon: '🎮', title: 'Minijuegos', desc: 'Desafíos', color: 'border-purple-500' },
@@ -602,25 +682,20 @@ export default function SpaceFarmIntegrated() {
                                     </div>
                                 </div>
                                 <div className="text-center mx-10">
-                                    <div
-                                        className={`font-bold `}
+                                    <Link
+                                        href="/game"
+                                        className="group inline-flex items-center justify-center gap-3 px-20 py-4 mx-10 
+                                                    bg-gradient-to-r from-emerald-600 via-green-500 to-cyan-500
+                                                  text-white font-semibold rounded-2xl tracking-wide
+                                                    shadow-[0_0_20px_#00ff99] hover:shadow-[0_0_35px_#00ffaa]
+                                                    hover:scale-105 transition-all duration-300 ease-out
+                                                    animate-pulse-slow border border-emerald-400/30"
                                     >
-                                        <Link
-                                            href="/game"
-                                            className="group inline-flex items-center justify-center gap-3 px-20 py-4 mx-10 
-                                                        bg-gradient-to-r from-emerald-600 via-green-500 to-cyan-500
-                                                      text-white font-semibold rounded-2xl tracking-wide
-                                                        shadow-[0_0_20px_#00ff99] hover:shadow-[0_0_35px_#00ffaa]
-                                                        hover:scale-105 transition-all duration-300 ease-out
-                                                        animate-pulse-slow border border-emerald-400/30"
-                                        >
-                                            {/* Ícono de flecha con animación */}
-                                            <ArrowLeft
-                                                className="w-5 h-5 text-white transition-transform duration-300 ease-out group-hover:-translate-x-1"
-                                            />
-                                            Atrás
-                                        </Link>
-                                    </div>
+                                        <ArrowLeft
+                                            className="w-5 h-5 text-white transition-transform duration-300 ease-out group-hover:-translate-x-1"
+                                        />
+                                        Atrás
+                                    </Link>
                                 </div>
                             </div>
                         </div>
@@ -640,6 +715,7 @@ export default function SpaceFarmIntegrated() {
                         selectedCrop={selectedCrop}
                         onSelectCrop={setSelectedCrop}
                         onSelectParcel={handleParcelSelect}
+                        onHarvestParcel={handleHarvest}
                         autoWateringParcels={autoWateringParcels}
                         onManualWatering={handleManualWatering}
                         playerMoney={localMoney}
@@ -715,17 +791,17 @@ export default function SpaceFarmIntegrated() {
                     {modes.map((mode) => (
                         <motion.button
                             key={mode.id}
-                            className={`p-3 rounded-lg border-2 text-center transition-all ${selectedMode === mode.id
-                                ? `${mode.color} bg-gray-800 shadow-lg`
-                                : 'border-gray-700 bg-gray-800 hover:border-gray-500'
-                                }`}
+                            className={`p-3 rounded-lg border-2 text-center transition-all ${
+                                selectedMode === mode.id
+                                    ? `${mode.color} bg-gray-800 shadow-lg`
+                                    : 'border-gray-700 bg-gray-800 hover:border-gray-500'
+                            }`}
                             whileHover={{ scale: 1.05, y: -2 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => setSelectedMode(mode.id)}
                         >
                             <div className="text-2xl mb-1">{mode.icon}</div>
                             <div className="text-white text-xs font-semibold">{mode.title}</div>
-
                         </motion.button>
                     ))}
                 </div>

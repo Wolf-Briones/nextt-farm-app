@@ -44,7 +44,7 @@ export function useGameLogic(
    * Seleccionar o plantar en una parcela
    */
   const handleSelectParcel = (
-    parcelId: number,
+    parcelId: number| null,
     selectedCrop: CropType | null,
     playerMoney: number,
     onMoneyChange: (money: number) => void,

@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Space Farm - Explorando el Cosmos",
+  title: "Space Farm - Explorando el universo",
   description: "Explora el cosmos con Space Farm - Challenge NASA 2025",
   keywords: "space, farm, NASA, agricultura, espacial, 3D, globe",
   authors: [{ name: "Space Farm Team" }],

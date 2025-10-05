@@ -1,4 +1,4 @@
-import type { CropType, CropDecisionConfig } from "../types/crops";
+import type { CropType, CropDecisionConfig } from "@/lib/types/crops";
 
 /**
  * Cultivos disponibles con datos NASA
