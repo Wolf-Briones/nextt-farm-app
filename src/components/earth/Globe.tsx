@@ -325,14 +325,6 @@ export default function Globe() {
       gradient: "from-blue-900/90 to-cyan-900/90",
       borderColor: "border-cyan-500/40",
       href: "/game/investigar"
-    },
-    {
-      title: t.modules.minijuegos.title,
-      description: t.modules.minijuegos.description,
-      icon: "🎮",
-      gradient: "from-purple-900/90 to-pink-900/90",
-      borderColor: "border-purple-500/40",
-      href: "/game/intelligence"
     }
   ], [t.modules]);
 

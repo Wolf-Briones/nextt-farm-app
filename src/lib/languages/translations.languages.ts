@@ -33,11 +33,7 @@ export const translations = {
       investigacion: {
         title: "Investigación",
         description: "Laboratorio agrícola",
-      },
-      minijuegos: {
-        title: "IA predictiva",
-        description: "Pronosticos inteligentes",
-      },
+      }, 
       explore: "🤖Explorar🚀",
     },
     // Panel de Estadísticas
@@ -468,11 +464,7 @@ export const translations = {
       investigacion: {
         title: "Research",
         description: "Agricultural laboratory",
-      },
-      minijuegos: {
-        title: "Predictive AI",
-        description: "Smart Forecasts",
-      },
+      }, 
       explore: "🤖Explore🚀",
     },
 
