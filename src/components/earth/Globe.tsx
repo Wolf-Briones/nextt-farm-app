@@ -3,10 +3,12 @@
 import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { OrbitControls, Stars } from "@react-three/drei";
 import * as THREE from "three";
-import { useRef, useState, useEffect, Suspense } from "react";
-import { motion } from "framer-motion";
+import { useRef, useState, useEffect, Suspense, useMemo } from "react";
+// 💡 CORRECCIÓN 1: Importamos el tipo 'Variants' de framer-motion
+import { motion, Variants } from "framer-motion"; 
+import { Language, translations } from "@/lib/languages/glove.languages";
 
-// 🌍 Tierra con imagen
+// 🌍 Tierra con imagen (No necesita cambios)
 function Earth() {
   const RADIUS = 2;
   const earthRef = useRef<THREE.Mesh>(null);
@@ -26,7 +28,7 @@ function Earth() {
   );
 }
 
-// ☄️ Cometas animados
+// ☄️ Cometas animados (No necesita cambios)
 function Comets() {
   const cometCount = 10;
   const comets = Array.from({ length: cometCount }, (_, i) => i);
@@ -64,8 +66,8 @@ function Comets() {
   );
 }
 
-// ⏳ Barra de carga futurista
-function LoadingBar({ onFinish }: { onFinish: () => void }) {
+// ⏳ Barra de carga futurista (t: Objeto de traducción para carga)
+function LoadingBar({ onFinish, t }: { onFinish: () => void, t: typeof translations['es']['loading'] }) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -86,7 +88,7 @@ function LoadingBar({ onFinish }: { onFinish: () => void }) {
     <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-80 z-50 pointer-events-none">
       <div className="mb-2 flex justify-between items-center">
         <span className="text-emerald-400 text-sm font-semibold">
-          Inicializando Sistema Agrícola
+          {t.title}
         </span>
         <span className="text-cyan-300 text-sm font-mono">{progress}%</span>
       </div>
@@ -99,7 +101,7 @@ function LoadingBar({ onFinish }: { onFinish: () => void }) {
       </div>
 
       <p className="text-gray-400 text-xs text-center mt-2">
-        Conectando con sistemas de monitoreo global...
+        {t.message}
       </p>
     </div>
   );
@@ -119,7 +121,7 @@ const defaultLocation: LocationData = {
   country: "Perú",
 };
 
-// 🎴 Cards de módulos
+// 🎴 Cards de módulos (MODIFICADA el padding interno)
 interface ModuleCardProps {
   title: string;
   description: string;
@@ -128,36 +130,38 @@ interface ModuleCardProps {
   borderColor: string;
   href: string;
   delay: number;
+  exploreText: string;
 }
 
-function ModuleCard({ title, description, icon, gradient, borderColor, href, delay }: ModuleCardProps) {
+function ModuleCard({ title, description, icon, gradient, borderColor, href, delay, exploreText }: ModuleCardProps) {
   return (
     <motion.a
       href={href}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, x: 20 }} // Animación de entrada por la derecha
+      animate={{ opacity: 1, x: 0 }}
       transition={{ delay }}
-      whileHover={{ scale: 1.05, y: -5 }}
+      whileHover={{ scale: 1.05, x: 5 }} // Efecto al pasar el mouse
       whileTap={{ scale: 0.95 }}
-      className="block group"
+      className="block group min-w-[280px]"
     >
-      <div className={`relative bg-gradient-to-br ${gradient} backdrop-blur-md rounded-2xl p-4 border ${borderColor} shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden`}>
+      {/* Aumento de padding a p-5 */}
+      <div className={`relative bg-gradient-to-br ${gradient} backdrop-blur-md rounded-2xl p-5 border ${borderColor} shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden`}>
         {/* Efecto de brillo en hover */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
 
         <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-14 h-14 bg-white/10 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+          <div className="flex items-center gap-4 mb-3"> {/* Aumento de gap a 4 */}
+            <div className="w-16 h-16 bg-white/10 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300"> {/* Aumento de tamaño del icono */}
               <span className="text-3xl">{icon}</span>
             </div>
             <div>
-              <h3 className="text-white font-bold text-lg">{title}</h3>
-              <p className="text-white/70 text-xs">{description}</p>
+              <h3 className="text-white font-bold text-xl">{title}</h3> {/* Aumento de tamaño del título */}
+              <p className="text-white/70 text-sm">{description}</p> {/* Aumento de tamaño de la descripción */}
             </div>
           </div>
 
-          <div className="mt-4 flex items-center justify-between bg-black/20 rounded-lg p-2 border border-white/10">
-            <span className="text-white/80 text-sm font-medium">🤖Explorar🚀</span>
+          <div className="mt-4 flex items-center justify-between bg-black/20 rounded-lg p-3 border border-white/10"> {/* Aumento de padding a p-3 */}
+            <span className="text-white/80 text-sm font-medium">{exploreText}</span>
             <span className="text-xl group-hover:translate-x-1 transition-transform">→</span>
           </div>
         </div>
@@ -166,12 +170,71 @@ function ModuleCard({ title, description, icon, gradient, borderColor, href, del
   );
 }
 
+// ✍️ Componente de Animación de Escritura
+function TypewriterText({ text, delayStart }: { text: string[], delayStart: number }) {
+    const defaultDelay = 0.08; // Tiempo por caracter
+    const wordDelay = 0.5; // Tiempo entre palabras
+
+    // 💡 CORRECCIÓN 2: Tipado con 'Variants' y ajuste de la lógica de retardo
+    const variants: Variants = {
+        hidden: { opacity: 0, width: 0 },
+        // La función 'visible' recibe el índice (i) de la palabra a través de la prop 'custom'
+        visible: (i: number) => {
+            const word = text[i];
+            const duration = word.length * defaultDelay;
+
+            // Calcular el retraso total hasta esta palabra
+            let currentDelay = delayStart;
+            for (let k = 0; k < i; k++) {
+                currentDelay += (text[k].length * defaultDelay) + wordDelay;
+            }
+            const start = currentDelay;
+
+            return {
+                opacity: 1,
+                width: 'auto',
+                transition: {
+                    delay: start,
+                    duration: duration,
+                    // 💡 CORRECCIÓN 3: Reemplazamos "linear" por su equivalente en array
+                    ease: [0, 0, 1, 1] 
+                }
+            };
+        },
+    };
+
+    return (
+        <div className="absolute top-[340px] left-6 z-20 text-emerald-400 text-3xl font-semibold tracking-wide drop-shadow-[0_0_8px_#00ff99] flex flex-wrap gap-2 max-w-lg">
+            {text.map((word, index) => (
+                <motion.span
+                    key={index}
+                    custom={index}
+                    initial="hidden"
+                    animate="visible"
+                    variants={variants}
+                    style={{ whiteSpace: 'nowrap', overflow: 'hidden' }} // Oculta el texto hasta que se 'escribe'
+                    className="inline-block"
+                >
+                    {word}
+                </motion.span>
+            ))}
+        </div>
+    );
+}
+
+
 export default function Globe() {
   const [userLocation, setUserLocation] = useState<LocationData | null>(null);
   const [locationStatus, setLocationStatus] = useState<"loading" | "success" | "error">("loading");
   const [ready, setReady] = useState(false);
+  const [language, setLanguage] = useState<Language>('es'); 
+  
+  const t = useMemo(() => translations[language], [language]);
 
+  // Manejo de Geolocalización
   useEffect(() => {
+    const langCode = language === 'es' ? 'es' : 'en';
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
@@ -182,7 +245,7 @@ export default function Globe() {
               `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`,
               {
                 headers: {
-                  'Accept-Language': 'es'
+                  'Accept-Language': langCode
                 }
               }
             );
@@ -194,9 +257,9 @@ export default function Globe() {
               data.address?.village ||
               data.address?.municipality ||
               data.address?.county ||
-              "Ubicación detectada";
+              t.locationPanel.genericCity;
 
-            const country = data.address?.country || "Detectado";
+            const country = data.address?.country || t.locationPanel.genericCountry;
 
             setUserLocation({
               lat: latitude,
@@ -210,61 +273,100 @@ export default function Globe() {
             setUserLocation({
               lat: latitude,
               lon: longitude,
-              city: "Tu ubicación",
-              country: "Detectado"
+              city: t.locationPanel.genericCity,
+              country: t.locationPanel.genericCountry
             });
             setLocationStatus("success");
           }
         },
         () => {
           setLocationStatus("error");
-          setUserLocation(defaultLocation);
+          setUserLocation({
+            lat: defaultLocation.lat,
+            lon: defaultLocation.lon,
+            city: t.locationPanel.genericCity, 
+            country: t.locationPanel.genericCountry,
+          });
         }
       );
     } else {
       setLocationStatus("error");
-      setUserLocation(defaultLocation);
+      setUserLocation({
+        lat: defaultLocation.lat,
+        lon: defaultLocation.lon,
+        city: t.locationPanel.genericCity, 
+        country: t.locationPanel.genericCountry,
+      });
     }
-  }, []);
+  }, [language, t.locationPanel.genericCity, t.locationPanel.genericCountry]);
 
-  const modules = [
+  // Datos de los módulos
+  const modules = useMemo(() => [
     {
-      title: "Cultivos",
-      description: "Gestión de siembra",
+      title: t.modules.cultivos.title,
+      description: t.modules.cultivos.description,
       icon: "🌾",
       gradient: "from-emerald-900/90 to-green-900/90",
       borderColor: "border-emerald-500/40",
       href: "/game/cultivos"
     },
     {
-      title: "Ganadería",
-      description: "Monitoreo de ganado",
+      title: t.modules.ganaderia.title,
+      description: t.modules.ganaderia.description,
       icon: "🐄",
       gradient: "from-amber-900/90 to-orange-900/90",
       borderColor: "border-amber-500/40",
       href: "/game/ganaderia"
     },
     {
-      title: "Investigación",
-      description: "Laboratorio agrícola",
+      title: t.modules.investigacion.title,
+      description: t.modules.investigacion.description,
       icon: "🔬",
       gradient: "from-blue-900/90 to-cyan-900/90",
       borderColor: "border-cyan-500/40",
       href: "/game/investigar"
     },
     {
-      title: "Minijuegos",
-      description: "Desafíos espaciales",
+      title: t.modules.minijuegos.title,
+      description: t.modules.minijuegos.description,
       icon: "🎮",
       gradient: "from-purple-900/90 to-pink-900/90",
       borderColor: "border-purple-500/40",
       href: "/game/minijuegos"
     }
-  ];
+  ], [t.modules]);
+
 
   return (
     <div className="fixed inset-0 bg-gradient-to-b from-black via-gray-900 to-emerald-950 overflow-hidden">
-      {!ready && <LoadingBar onFinish={() => setReady(true)} />}
+      
+      {/* Selector de idioma */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 1.5 }}
+        className="absolute top-6 right-6 z-50 flex gap-2"
+      >
+        <button
+          onClick={() => setLanguage('es')}
+          className={`px-3 py-1 text-sm font-semibold rounded-full transition-colors ${
+            language === 'es' ? 'bg-emerald-500 text-white shadow-lg' : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+          }`}
+        >
+          ES 🇪🇸
+        </button>
+        <button
+          onClick={() => setLanguage('en')}
+          className={`px-3 py-1 text-sm font-semibold rounded-full transition-colors ${
+            language === 'en' ? 'bg-emerald-500 text-white shadow-lg' : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+          }`}
+        >
+          EN 🇬🇧
+        </button>
+      </motion.div>
+
+
+      {!ready && <LoadingBar onFinish={() => setReady(true)} t={t.loading} />}
 
       {ready && (
         <>
@@ -283,11 +385,11 @@ export default function Globe() {
               transition={{ delay: 0.3 }}
               className="text-center text-emerald-300/80 text-sm mt-2 font-light tracking-wide"
             >
-              Sistema de Agricultura Inteligente Global
+              {t.header.subtitle}
             </motion.p>
           </div>
 
-          {/* Panel de información de ubicación */}
+          {/* Panel de información de ubicación (Alineado a la IZQUIERDA) */}
           {userLocation && (
             <>
               <motion.div
@@ -301,22 +403,22 @@ export default function Globe() {
                     <span className="text-2xl">📍</span>
                   </div>
                   <div>
-                    <h3 className="text-white font-bold text-lg">Tu Ubicación</h3>
-                    <p className="text-emerald-300 text-xs">GPS Activo</p>
+                    <h3 className="text-white font-bold text-lg">{t.locationPanel.title}</h3>
+                    <p className="text-emerald-300 text-xs">{t.locationPanel.status}</p>
                   </div>
                 </div>
 
                 <div className="space-y-2 bg-black/30 rounded-lg p-3 border border-emerald-500/20">
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-400 text-xs">Ciudad:</span>
+                    <span className="text-gray-400 text-xs">{t.locationPanel.city}:</span>
                     <span className="text-white text-sm font-semibold">{userLocation.city}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-400 text-xs">País:</span>
+                    <span className="text-gray-400 text-xs">{t.locationPanel.country}:</span>
                     <span className="text-emerald-300 text-sm">{userLocation.country}</span>
                   </div>
                   <div className="border-t border-emerald-500/20 pt-2 mt-2">
-                    <div className="text-xs text-gray-400 mb-1">Coordenadas GPS</div>
+                    <div className="text-xs text-gray-400 mb-1">{t.locationPanel.coords}</div>
                     <div className="font-mono text-cyan-400 text-xs">
                       LAT: {userLocation.lat.toFixed(4)}°
                     </div>
@@ -327,33 +429,20 @@ export default function Globe() {
                 </div>
               </motion.div>
 
-              <div className="absolute top-[340px] left-6 z-20 flex gap-1 text-emerald-400 text-2xl font-semibold tracking-wide drop-shadow-[0_0_8px_#00ff99]">
-                {["Juega,", "aprende", "y", "transforma", "el", "planeta"].map((word, index) => (
-                  <motion.span
-                    key={index}
-                    initial={{ opacity: 0, x: -30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{
-                      delay: 1 + index * 0.3, 
-                      duration: 0.6,
-                      ease: "easeOut",
-                    }}
-                    className="inline-block"
-                  >
-                    {word}
-                  </motion.span>
-                ))}
-              </div>
+              {/* SLOGAN con animación de escritura (TypewriterText) */}
+              <TypewriterText text={t.slogan} delayStart={1} />
+              
             </>
           )}
 
-          {/* Grid de módulos - Lado derecho */}
-          <div className="absolute top-28 right-6 z-10 grid grid-cols-2 gap-3 max-w-2xl">
+          {/* Grid de módulos (Alineado a la DERECHA y más ancho) */}
+          <div className="absolute top-28 right-6 z-10 grid grid-cols-2 gap-6"> {/* Aumento de gap a 6 */}
             {modules.map((module, index) => (
               <ModuleCard
                 key={module.title}
                 {...module}
                 delay={0.6 + index * 0.1}
+                exploreText={t.modules.explore}
               />
             ))}
           </div>
@@ -366,19 +455,19 @@ export default function Globe() {
             className="absolute bottom-32 right-6 z-10 bg-gradient-to-br from-gray-900/90 to-emerald-900/90 backdrop-blur-md rounded-2xl p-4 border border-emerald-500/40 shadow-2xl shadow-emerald-500/20"
           >
             <h4 className="text-emerald-300 font-bold text-sm mb-3 flex items-center gap-2">
-              <span>🌾</span> Datos en Tiempo Real
+              <span>🌾</span> {t.stats.title}
             </h4>
             <div className="space-y-2 text-xs">
               <div className="flex justify-between gap-4">
-                <span className="text-gray-400">Áreas monitoreadas:</span>
+                <span className="text-gray-400">{t.stats.areas}</span>
                 <span className="text-white font-bold">2,847 ha</span>
               </div>
               <div className="flex justify-between gap-4">
-                <span className="text-gray-400">Cultivos activos:</span>
+                <span className="text-gray-400">{t.stats.crops}</span>
                 <span className="text-emerald-400 font-bold">156</span>
               </div>
               <div className="flex justify-between gap-4">
-                <span className="text-gray-400">Eficiencia hídrica:</span>
+                <span className="text-gray-400">{t.stats.efficiency}</span>
                 <span className="text-cyan-400 font-bold">94%</span>
               </div>
             </div>
@@ -398,12 +487,12 @@ export default function Globe() {
             className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 group"
           >
             <div className="relative px-10 py-4 text-lg font-bold text-white rounded-full shadow-2xl 
-                           bg-gradient-to-r from-emerald-600 via-green-500 to-cyan-500 
-                           hover:from-emerald-500 hover:to-cyan-400 transition-all duration-300
-                           border-2 border-emerald-400/50">
+                            bg-gradient-to-r from-emerald-600 via-green-500 to-cyan-500 
+                            hover:from-emerald-500 hover:to-cyan-400 transition-all duration-300
+                            border-2 border-emerald-400/50">
               <div className="flex items-center gap-3">
                 <span className="text-2xl">🚀</span>
-                <span>Iniciar Challenge NASA 2025</span>
+                <span>{t.cta}</span>
               </div>
               <div className="absolute inset-0 rounded-full bg-white/20 blur-xl group-hover:bg-white/30 transition-all duration-300 -z-10"></div>
             </div>
@@ -411,6 +500,7 @@ export default function Globe() {
         </>
       )}
 
+      {/* Canvas - El planeta sigue centrado por defecto */}
       <Canvas camera={{ position: [0, 0, 6], fov: 45 }}>
         <Stars radius={200} depth={80} count={20000} factor={6} fade speed={2} />
         <Comets />
