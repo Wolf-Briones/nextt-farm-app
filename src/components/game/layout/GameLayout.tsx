@@ -2,14 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
 
-// Tipos de funcionalidades del juego
-type GameMode = 'cultivar' | 'cuidar' | 'investigar' | 'ia';
+// Game functionality types
+type GameMode = 'cultivate' | 'care' | 'research' | 'ai';
 type SectionKey = 'understanding' | 'gameplay' | 'livestock' | 'decisions';
 
-
-// Tipos para los pasos del tutorial
+// Tutorial step types
 type TutorialStep = {
   id: string;
   title: string;
@@ -21,296 +19,296 @@ type TutorialStep = {
   actions?: string[];
 };
 
-// Datos del tutorial organizados por secciones
+// Tutorial data organized by sections
 const TUTORIAL_DATA = {
   understanding: {
-    title: "📊 Entendiendo los Valores",
-    subtitle: "Aprende a interpretar los indicadores agrícolas",
+    title: "📊 Understanding Values",
+    subtitle: "Learn to interpret agricultural indicators",
     color: "from-blue-600 to-cyan-500",
     steps: [
       {
         id: "ndvi",
-        title: "NDVI - Índice de Vegetación",
-        description: "Mide la salud y vigor de las plantas usando datos satelitales NASA",
+        title: "NDVI - Vegetation Index",
+        description: "Measures plant health and vigor using NASA satellite data",
         icon: "🌿",
         details: [
-          "Rango: 0.200 - 0.900 (valores normales)",
-          "Verde (>0.7): Excelente salud vegetal",
-          "Amarillo (0.5-0.7): Salud moderada",
-          "Rojo (<0.5): Estrés vegetal crítico",
-          "Cada cultivo tiene su NDVI óptimo específico"
+          "Range: 0.200 - 0.900 (normal values)",
+          "Green (>0.7): Excellent plant health",
+          "Yellow (0.5-0.7): Moderate health",
+          "Red (<0.5): Critical plant stress",
+          "Each crop has its specific optimal NDVI"
         ],
         tips: [
-          "Maíz óptimo: 0.650 NDVI",
-          "Trigo óptimo: 0.580 NDVI",
-          "Tomate óptimo: 0.720 NDVI"
+          "Corn optimal: 0.650 NDVI",
+          "Wheat optimal: 0.580 NDVI",
+          "Tomato optimal: 0.720 NDVI"
         ],
-        example: "Si tu maíz muestra NDVI 0.620 vs óptimo 0.650, necesita nutrientes"
+        example: "If your corn shows NDVI 0.620 vs optimal 0.650, it needs nutrients"
       },
       {
         id: "water",
-        title: "Nivel de Agua",
-        description: "Porcentaje de humedad disponible para el cultivo",
+        title: "Water Level",
+        description: "Percentage of moisture available for the crop",
         icon: "💧",
         details: [
-          "0-30%: Crítico - Riego urgente",
-          "30-60%: Bajo - Programar riego",
-          "60-80%: Óptimo - Monitorear",
-          "80-100%: Excelente - Sin acción",
-          "Cada cultivo tiene necesidades hídricas diferentes"
+          "0-30%: Critical - Urgent irrigation",
+          "30-60%: Low - Schedule irrigation",
+          "60-80%: Optimal - Monitor",
+          "80-100%: Excellent - No action needed",
+          "Each crop has different water needs"
         ],
         tips: [
-          "Tomate necesita 90% de agua",
-          "Trigo es más resistente (50%)",
-          "Papa requiere humedad constante"
+          "Tomato needs 90% water",
+          "Wheat is more resistant (50%)",
+          "Potato requires constant moisture"
         ],
-        example: "Tomate con 40% agua = estrés hídrico severo"
+        example: "Tomato with 40% water = severe water stress"
       },
       {
         id: "health",
-        title: "Salud del Cultivo",
-        description: "Estado general de la planta (0-100%)",
+        title: "Crop Health",
+        description: "Overall plant condition (0-100%)",
         icon: "❤️",
         details: [
-          "80-100%: Excelente estado",
-          "60-80%: Buena salud",
-          "40-60%: Atención requerida",
-          "0-40%: Estado crítico",
-          "Afectado por agua, plagas y nutrientes"
+          "80-100%: Excellent condition",
+          "60-80%: Good health",
+          "40-60%: Attention required",
+          "0-40%: Critical state",
+          "Affected by water, pests and nutrients"
         ],
         tips: [
-          "Baja salud reduce el rendimiento",
-          "Monitorea cambios diarios",
-          "Actúa antes del 40%"
+          "Low health reduces yield",
+          "Monitor daily changes",
+          "Act before reaching 40%"
         ],
-        example: "Salud 30% = pérdidas significativas en cosecha"
+        example: "Health 30% = significant harvest losses"
       }
     ]
   },
   gameplay: {
-    title: "🎮 Cómo Jugar",
-    subtitle: "Interacciones y mecánicas del simulador",
+    title: "🎮 How to Play",
+    subtitle: "Interactions and simulator mechanics",
     color: "from-green-600 to-emerald-500",
     steps: [
       {
         id: "selection",
-        title: "Selección de Parcelas",
-        description: "Elige cultivos y administra 12 parcelas disponibles",
+        title: "Plot Selection",
+        description: "Choose crops and manage 12 available plots",
         icon: "🗺️",
         details: [
-          "Haz clic en cultivo para seleccionar",
-          "Clic en parcela libre para plantar",
-          "Costo: $50 por parcela plantada",
-          "Cada cultivo tiene tiempo diferente",
-          "Monitorea múltiples parcelas simultáneamente"
+          "Click on crop to select",
+          "Click on free plot to plant",
+          "Cost: $50 per planted plot",
+          "Each crop has different timing",
+          "Monitor multiple plots simultaneously"
         ],
         tips: [
-          "Diversifica cultivos para reducir riesgo",
-          "Planta según estación y recursos",
-          "Parcelas amarillas necesitan atención"
+          "Diversify crops to reduce risk",
+          "Plant according to season and resources",
+          "Yellow plots need attention"
         ],
-        example: "Selecciona tomate → Clic parcela → Paga $50 → Planta inmediatamente",
-        actions: ["Seleccionar", "Plantar", "Monitorear"]
+        example: "Select tomato → Click plot → Pay $50 → Plant immediately",
+        actions: ["Select", "Plant", "Monitor"]
       },
       {
         id: "watering",
-        title: "Sistema de Riego",
-        description: "Dos opciones: manual gratuito o automático inteligente",
+        title: "Irrigation System",
+        description: "Two options: free manual or smart automatic",
         icon: "💧",
         details: [
-          "Riego Manual: Gratuito, +10 agua, inmediato",
-          "Riego Automático: $5, +25 agua, 10 segundos",
-          "Botón azul aparece cuando se necesita",
-          "Sistema IoT optimiza aplicación",
-          "Previene estrés hídrico crítico"
+          "Manual Irrigation: Free, +10 water, immediate",
+          "Automatic Irrigation: $5, +25 water, 10 seconds",
+          "Blue button appears when needed",
+          "IoT system optimizes application",
+          "Prevents critical water stress"
         ],
         tips: [
-          "Manual para control directo",
-          "Automático para eficiencia",
-          "Usa manual si tienes poco dinero"
+          "Manual for direct control",
+          "Automatic for efficiency",
+          "Use manual if low on money"
         ],
-        example: "Maíz 30% agua → Botón azul activo → Elige manual o automático",
-        actions: ["Riego Manual", "Riego Automático", "Programar"]
+        example: "Corn 30% water → Blue button active → Choose manual or automatic",
+        actions: ["Manual Irrigation", "Auto Irrigation", "Schedule"]
       }
     ]
   },
   livestock: {
-    title: "🐄 Ganadería Inteligente",
-    subtitle: "Manejo y cuidado del ganado con tecnología",
+    title: "🐄 Smart Livestock",
+    subtitle: "Cattle management and care with technology",
     color: "from-orange-600 to-amber-500",
     steps: [
       {
         id: "health-monitoring",
-        title: "Monitoreo de Salud",
-        description: "Sistema IoT para vigilancia continua del ganado",
+        title: "Health Monitoring",
+        description: "IoT system for continuous livestock surveillance",
         icon: "🩺",
         details: [
-          "Sensores de temperatura corporal en tiempo real",
-          "Monitoreo de actividad y movimiento",
-          "Detección temprana de enfermedades",
-          "Alertas automáticas de comportamiento anómalo",
-          "Historial médico digital por animal"
+          "Real-time body temperature sensors",
+          "Activity and movement monitoring",
+          "Early disease detection",
+          "Automatic anomaly behavior alerts",
+          "Digital medical history per animal"
         ],
         tips: [
-          "Temperatura normal: 38.5-39°C",
-          "Actividad baja puede indicar enfermedad",
-          "Revisa alertas cada 2 horas"
+          "Normal temperature: 38.5-39°C",
+          "Low activity may indicate illness",
+          "Check alerts every 2 hours"
         ],
-        example: "Vaca #12 temperatura 40.1°C → Alerta fiebre → Llamar veterinario",
-        actions: ["Revisar Vitales", "Ver Historial", "Generar Reporte"]
+        example: "Cow #12 temperature 40.1°C → Fever alert → Call veterinarian",
+        actions: ["Check Vitals", "View History", "Generate Report"]
       },
       {
         id: "feeding-system",
-        title: "Sistema de Alimentación",
-        description: "Arrastra y suelta alimento según necesidades nutricionales",
+        title: "Feeding System",
+        description: "Drag and drop feed according to nutritional needs",
         icon: "🌾",
         details: [
-          "Drag & Drop: Arrastra heno, pienso o suplementos",
-          "Cálculo automático de raciones por peso/edad",
-          "Diferentes tipos: Forraje, concentrado, minerales",
-          "Horarios programados de alimentación",
-          "Control de peso y crecimiento"
+          "Drag & Drop: Drag hay, feed or supplements",
+          "Automatic ration calculation by weight/age",
+          "Different types: Forage, concentrate, minerals",
+          "Scheduled feeding times",
+          "Weight and growth control"
         ],
         tips: [
-          "Vacas adultas: 2-3% peso corporal en alimento",
-          "Terneros: Alimentar cada 6-8 horas",
-          "Varía dieta según época del año"
+          "Adult cows: 2-3% body weight in feed",
+          "Calves: Feed every 6-8 hours",
+          "Vary diet according to season"
         ],
-        example: "Arrastra 🌾 sobre vaca joven → Sistema calcula 15kg → Animal satisfecho",
-        actions: ["Arrastra Heno", "Arrastra Pienso", "Programar Horario"]
+        example: "Drag 🌾 over young cow → System calculates 15kg → Satisfied animal",
+        actions: ["Drag Hay", "Drag Feed", "Schedule Times"]
       },
       {
         id: "water-management",
-        title: "Gestión Hídrica",
-        description: "Sistema automatizado de hidratación y detección de estrés",
+        title: "Water Management",
+        description: "Automated hydration and stress detection system",
         icon: "💧",
         details: [
-          "Bebederos automáticos con sensores",
-          "Detección de estrés hídrico por comportamiento",
-          "Calidad del agua monitoreada (pH, temperatura)",
-          "Consumo diario por animal registrado",
-          "Alertas de deshidratación temprana"
+          "Automatic drinkers with sensors",
+          "Water stress detection by behavior",
+          "Monitored water quality (pH, temperature)",
+          "Daily consumption per animal recorded",
+          "Early dehydration alerts"
         ],
         tips: [
-          "Vaca adulta necesita 30-50L/día",
-          "Agua caliente en invierno mejora consumo",
-          "Limpia bebederos semanalmente"
+          "Adult cow needs 30-50L/day",
+          "Warm water in winter improves consumption",
+          "Clean drinkers weekly"
         ],
-        example: "Sensor detecta 8 horas sin beber → Alerta estrés hídrico → Revisar bebedero",
-        actions: ["Revisar Consumo", "Llenar Tanque", "Analizar Calidad"]
+        example: "Sensor detects 8 hours without drinking → Water stress alert → Check drinker",
+        actions: ["Check Consumption", "Fill Tank", "Analyze Quality"]
       },
       {
         id: "veterinary-care",
-        title: "Atención Veterinaria",
-        description: "Sistema de diagnóstico y tratamiento veterinario",
+        title: "Veterinary Care",
+        description: "Veterinary diagnosis and treatment system",
         icon: "🏥",
         details: [
-          "Drag & Drop animales enfermos a la clínica",
-          "Diagnóstico automático por síntomas",
-          "Tratamientos disponibles: Medicamentos, cirugía",
-          "Tiempo de recuperación variable por enfermedad",
-          "Costo de tratamiento según gravedad"
+          "Drag & Drop sick animals to clinic",
+          "Automatic diagnosis by symptoms",
+          "Available treatments: Medication, surgery",
+          "Variable recovery time per disease",
+          "Treatment cost according to severity"
         ],
         tips: [
-          "Prevención es más barata que curar",
-          "Aísla animales enfermos del rebaño",
-          "Vacunación anual obligatoria"
+          "Prevention is cheaper than cure",
+          "Isolate sick animals from herd",
+          "Annual vaccination mandatory"
         ],
-        example: "Vaca cojea → Arrastra a clínica → Diagnóstico: Mastitis → Tratamiento $150",
-        actions: ["Llevar a Clínica", "Aplicar Tratamiento", "Programar Revisión"]
+        example: "Cow limping → Drag to clinic → Diagnosis: Mastitis → Treatment $150",
+        actions: ["Take to Clinic", "Apply Treatment", "Schedule Checkup"]
       },
       {
         id: "breeding-management",
-        title: "Gestión Reproductiva",
-        description: "Control de apareamiento y nacimientos",
+        title: "Reproductive Management",
+        description: "Mating and birth control",
         icon: "👶",
         details: [
-          "Ciclo estral monitoreado por sensores",
-          "Programación de inseminación artificial",
-          "Seguimiento de gestación con ultrasonido",
-          "Preparación para parto con alertas",
-          "Registro genealógico y mejoramiento genético"
+          "Estrous cycle monitored by sensors",
+          "Artificial insemination scheduling",
+          "Gestation tracking with ultrasound",
+          "Delivery preparation with alerts",
+          "Genealogical record and genetic improvement"
         ],
         tips: [
-          "Gestación bovina: 280-285 días",
-          "Primera inseminación: 15-18 meses",
-          "Separa toros agresivos del rebaño"
+          "Bovine gestation: 280-285 days",
+          "First insemination: 15-18 months",
+          "Separate aggressive bulls from herd"
         ],
-        example: "Vaca en celo → Programa inseminación → 9 meses → Nace ternero saludable",
-        actions: ["Detectar Celo", "Inseminar", "Monitorear Gestación"]
+        example: "Cow in heat → Schedule insemination → 9 months → Healthy calf born",
+        actions: ["Detect Heat", "Inseminate", "Monitor Gestation"]
       },
       {
         id: "production-tracking",
-        title: "Seguimiento de Producción",
-        description: "Monitoreo de leche, carne y otros productos",
+        title: "Production Tracking",
+        description: "Monitoring milk, meat and other products",
         icon: "🥛",
         details: [
-          "Ordeño automatizado con registro por vaca",
-          "Análisis de calidad de leche (grasa, proteína)",
-          "Peso de ganado para sacrificio",
-          "Rendimiento económico por animal",
-          "Predicción de producción con IA"
+          "Automated milking with per-cow recording",
+          "Milk quality analysis (fat, protein)",
+          "Cattle weight for slaughter",
+          "Economic yield per animal",
+          "AI production prediction"
         ],
         tips: [
-          "Ordeño 2-3 veces al día",
-          "Vaca lechera produce 20-40L/día",
-          "Calidad afecta precio de venta"
+          "Milking 2-3 times daily",
+          "Dairy cow produces 20-40L/day",
+          "Quality affects sale price"
         ],
-        example: "Vaca lechera produce 35L/día → Análisis: 4.2% grasa → Precio premium",
-        actions: ["Iniciar Ordeño", "Analizar Calidad", "Calcular Ingresos"]
+        example: "Dairy cow produces 35L/day → Analysis: 4.2% fat → Premium price",
+        actions: ["Start Milking", "Analyze Quality", "Calculate Income"]
       }
     ]
   },
   decisions: {
-    title: "🎯 Tomando Decisiones",
-    subtitle: "Estrategias y acciones para maximizar rendimiento",
+    title: "🎯 Making Decisions",
+    subtitle: "Strategies and actions to maximize yield",
     color: "from-purple-600 to-pink-500",
     steps: [
       {
         id: "emergency",
-        title: "Decisiones de Emergencia",
-        description: "Actúa rápido ante situaciones críticas",
+        title: "Emergency Decisions",
+        description: "Act fast in critical situations",
         icon: "🚨",
         details: [
-          "Agua <30%: Riego inmediato obligatorio",
-          "Salud <40%: Evalúa todas las causas",
-          "Plagas >70%: Control urgente necesario",
-          "Temperatura >35°C: Protección térmica",
-          "Cartas ROJAS = acción inmediata"
+          "Water <30%: Immediate irrigation required",
+          "Health <40%: Evaluate all causes",
+          "Pests >70%: Urgent control needed",
+          "Temperature >35°C: Thermal protection",
+          "RED cards = immediate action"
         ],
         tips: [
-          "Las emergencias cuestan más tarde",
-          "Prevenir es 3x más barato",
-          "Prioriza cultivos más valiosos"
+          "Emergencies cost more later",
+          "Prevention is 3x cheaper",
+          "Prioritize most valuable crops"
         ],
-        example: "Tomate 25% agua + salud 35% = riego + análisis nutrientes urgente",
-        actions: ["Riego Urgente", "Control Plagas", "Protección Térmica"]
+        example: "Tomato 25% water + health 35% = urgent irrigation + nutrient analysis",
+        actions: ["Urgent Irrigation", "Pest Control", "Thermal Protection"]
       },
       {
         id: "optimization",
-        title: "Optimización Avanzada",
-        description: "Maximiza rendimientos y ganancias",
+        title: "Advanced Optimization",
+        description: "Maximize yields and profits",
         icon: "⚡",
         details: [
-          "Sincroniza cosechas para flujo de caja",
-          "Usa riego automático para eficiencia",
-          "Especialízate en cultivos rentables",
-          "Interpreta datos NASA para timing",
-          "Cartas VERDES = oportunidades"
+          "Synchronize harvests for cash flow",
+          "Use automatic irrigation for efficiency",
+          "Specialize in profitable crops",
+          "Interpret NASA data for timing",
+          "GREEN cards = opportunities"
         ],
         tips: [
-          "Tomate: $220/ton pero difícil",
-          "Trigo: $150/ton pero estable",
-          "Soja: $200/ton + fija nitrógeno"
+          "Tomato: $220/ton but difficult",
+          "Wheat: $150/ton but stable",
+          "Soybean: $200/ton + fixes nitrogen"
         ],
-        example: "Planta tomate cuando temperatura <25°C y humedad >60%",
-        actions: ["Planificar", "Automatizar", "Optimizar"]
+        example: "Plant tomato when temperature <25°C and humidity >60%",
+        actions: ["Plan", "Automate", "Optimize"]
       }
     ]
   }
 };
 
-// Componente de tarjeta individual mejorada
+// Enhanced individual card component
 const StepCard = ({ step, isActive, onClick, sectionColor }: {
   step: TutorialStep;
   isActive: boolean;
@@ -372,7 +370,7 @@ const StepCard = ({ step, isActive, onClick, sectionColor }: {
           >
             {/* Details */}
             <div className="bg-gray-700/50 rounded-lg p-4">
-              <h5 className="text-cyan-400 font-semibold mb-2 text-sm">📋 Detalles:</h5>
+              <h5 className="text-cyan-400 font-semibold mb-2 text-sm">📋 Details:</h5>
               <div className="space-y-2">
                 {step.details.map((detail, index) => (
                   <motion.div
@@ -392,7 +390,7 @@ const StepCard = ({ step, isActive, onClick, sectionColor }: {
             {/* Tips */}
             {step.tips && (
               <div className="bg-blue-900/30 border border-blue-500/30 rounded-lg p-4">
-                <h5 className="text-blue-400 font-semibold text-sm mb-2">💡 Consejos:</h5>
+                <h5 className="text-blue-400 font-semibold text-sm mb-2">💡 Tips:</h5>
                 {step.tips.map((tip, index) => (
                   <div key={index} className="text-blue-300 text-xs mb-1">• {tip}</div>
                 ))}
@@ -402,7 +400,7 @@ const StepCard = ({ step, isActive, onClick, sectionColor }: {
             {/* Example */}
             {step.example && (
               <div className="bg-green-900/30 border border-green-500/30 rounded-lg p-4">
-                <h5 className="text-green-400 font-semibold text-sm mb-2">🎯 Ejemplo:</h5>
+                <h5 className="text-green-400 font-semibold text-sm mb-2">🎯 Example:</h5>
                 <div className="text-green-300 text-xs italic">{step.example}</div>
               </div>
             )}
@@ -414,7 +412,7 @@ const StepCard = ({ step, isActive, onClick, sectionColor }: {
     {/* Active indicator */}
     {isActive && (
       <motion.div
-        className="absolute  border-2 border-cyan-400 pointer-events-noneabsolute -inset-1 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 rounded-xl blur-sm"
+        className="absolute -inset-1 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 rounded-xl blur-sm pointer-events-none"
         initial={{ scale: 1.1, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
       />
@@ -422,14 +420,14 @@ const StepCard = ({ step, isActive, onClick, sectionColor }: {
   </motion.div>
 );
 
-// Componente de grid de cards
+// Cards grid component
 const CardsGrid = ({ data, activeStep, onStepChange }: {
   data: typeof TUTORIAL_DATA.understanding;
   activeStep: string | null;
   onStepChange: (stepId: string | null) => void;
 }) => (
   <div className="h-full">
-    {/* Header de la sección */}
+    {/* Section header */}
     <div className="text-center mb-8">
       <motion.div
         className={`inline-block p-4 rounded-xl bg-gradient-to-r ${data.color} mb-4`}
@@ -440,7 +438,7 @@ const CardsGrid = ({ data, activeStep, onStepChange }: {
       <p className="text-gray-400 text-lg">{data.subtitle}</p>
     </div>
 
-    {/* Grid de cards */}
+    {/* Cards grid */}
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 h-[calc(100%-140px)] overflow-y-auto pb-8">
       {data.steps.map((step, index) => (
         <motion.div
@@ -461,10 +459,9 @@ const CardsGrid = ({ data, activeStep, onStepChange }: {
   </div>
 );
 
-// Componente StepsGame
+// StepsGame component
 function StepsGame() {
   const [activeSection, setActiveSection] = useState<SectionKey>('understanding');
-
   const [activeStep, setActiveStep] = useState<string | null>(null);
   const [showWelcome, setShowWelcome] = useState(true);
   const [currentTip, setCurrentTip] = useState(0);
@@ -474,14 +471,14 @@ function StepsGame() {
     setActiveStep(null);
   };
 
-  // Tips rotativos mejorados
+  // Enhanced rotating tips
   const rotatingTips = [
-    "🌱 Cada cultivo tiene necesidades específicas de agua y nutrientes",
-    "📡 Los datos NASA se actualizan en tiempo real cada 5 segundos",
-    "💰 El riego manual es gratuito, el automático cuesta $5 pero es más eficiente",
-    "🐄 Arrastra alimento sobre los animales para alimentarlos automáticamente",
-    "🩺 Los sensores IoT detectan enfermedades antes que síntomas visibles",
-    "🎯 Las cartas rojas requieren acción inmediata para evitar pérdidas"
+    "🌱 Each crop has specific water and nutrient needs",
+    "📡 NASA data updates in real-time every 5 seconds",
+    "💰 Manual irrigation is free, automatic costs $5 but is more efficient",
+    "🐄 Drag feed over animals to automatically feed them",
+    "🩺 IoT sensors detect diseases before visible symptoms",
+    "🎯 Red cards require immediate action to prevent losses"
   ];
 
   useEffect(() => {
@@ -490,7 +487,6 @@ function StepsGame() {
     }, 4000);
     return () => clearInterval(interval);
   }, [rotatingTips.length]);
-
 
   const handleStepChange = (stepId: string | null) => {
     setActiveStep(stepId);
@@ -513,38 +509,38 @@ function StepsGame() {
             🚀
           </motion.div>
           <h1 className="text-4xl font-bold text-white mb-4">
-            Simulador Agrícola NASA
+            NASA Agricultural Simulator
           </h1>
           <h2 className="text-xl text-cyan-400 mb-6">
-            Tutorial Interactivo Completo
+            Complete Interactive Tutorial
           </h2>
           <p className="text-gray-300 mb-8 text-lg leading-relaxed">
-            Aprende a gestionar cultivos y ganado usando datos satelitales reales.
-            Domina la agricultura de precisión, el cuidado animal y la toma de decisiones
-            inteligentes para maximizar tu producción.
+            Learn to manage crops and livestock using real satellite data.
+            Master precision agriculture, animal care and intelligent decision-making
+            to maximize your production.
           </p>
 
           {/* Features showcase */}
           <div className="grid grid-cols-2 gap-4 mb-8">
             <div className="bg-blue-900/20 p-4 rounded-lg border border-blue-500/30">
               <div className="text-2xl mb-2">📊</div>
-              <div className="text-blue-400 font-semibold">Datos NASA MODIS/SMAP</div>
-              <div className="text-gray-400 text-sm">Información satelital en tiempo real</div>
+              <div className="text-blue-400 font-semibold">NASA MODIS/SMAP Data</div>
+              <div className="text-gray-400 text-sm">Real-time satellite information</div>
             </div>
             <div className="bg-green-900/20 p-4 rounded-lg border border-green-500/30">
               <div className="text-2xl mb-2">🌱</div>
-              <div className="text-green-400 font-semibold">5 Cultivos Diferentes</div>
-              <div className="text-gray-400 text-sm">Características únicas por cultivo</div>
+              <div className="text-green-400 font-semibold">5 Different Crops</div>
+              <div className="text-gray-400 text-sm">Unique characteristics per crop</div>
             </div>
             <div className="bg-orange-900/20 p-4 rounded-lg border border-orange-500/30">
               <div className="text-2xl mb-2">🐄</div>
-              <div className="text-orange-400 font-semibold">Ganadería Inteligente</div>
-              <div className="text-gray-400 text-sm">Manejo integral del ganado</div>
+              <div className="text-orange-400 font-semibold">Smart Livestock</div>
+              <div className="text-gray-400 text-sm">Comprehensive cattle management</div>
             </div>
             <div className="bg-purple-900/20 p-4 rounded-lg border border-purple-500/30">
               <div className="text-2xl mb-2">🎯</div>
-              <div className="text-purple-400 font-semibold">IA Predictiva</div>
-              <div className="text-gray-400 text-sm">Decisiones inteligentes</div>
+              <div className="text-purple-400 font-semibold">Predictive AI</div>
+              <div className="text-gray-400 text-sm">Smart decisions</div>
             </div>
           </div>
 
@@ -554,7 +550,7 @@ function StepsGame() {
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowWelcome(false)}
           >
-            🎮 Comenzar Tutorial Interactivo
+            🎮 Start Interactive Tutorial
           </motion.button>
         </motion.div>
       </div>
@@ -563,7 +559,7 @@ function StepsGame() {
 
   return (
     <div className="h-full bg-gray-900 flex flex-col">
-      {/* Header mejorado */}
+      {/* Enhanced header */}
       <div className="bg-gradient-to-r from-gray-800 to-gray-900 border-b border-gray-700 p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -575,12 +571,12 @@ function StepsGame() {
               🎓
             </motion.span>
             <div>
-              <h2 className="text-2xl font-bold text-white">Tutorial Interactivo</h2>
-              <p className="text-gray-400">Domina la agricultura y ganadería inteligente</p>
+              <h2 className="text-2xl font-bold text-white">Interactive Tutorial</h2>
+              <p className="text-gray-400">Master smart agriculture and livestock</p>
             </div>
           </div>
 
-          {/* Tip rotativo mejorado */}
+          {/* Enhanced rotating tip */}
           <div className="flex-1 mx-8">
             <AnimatePresence mode="wait">
               <motion.div
@@ -603,19 +599,19 @@ function StepsGame() {
             whileHover={{ scale: 1.05 }}
             onClick={() => setShowWelcome(true)}
           >
-            ← Inicio
+            ← Home
           </motion.button>
         </div>
       </div>
 
-      {/* Navegación por pestañas mejorada */}
+      {/* Enhanced tab navigation */}
       <div className="bg-gray-800 border-b border-gray-700 px-6 py-4">
         <div className="flex space-x-2">
           {[
-            { key: 'understanding', label: '📊 Valores', color: 'from-blue-600 to-cyan-500' },
-            { key: 'gameplay', label: '🎮 Jugar', color: 'from-green-600 to-emerald-500' },
-            { key: 'livestock', label: '🐄 Ganadería', color: 'from-orange-600 to-amber-500' },
-            { key: 'decisions', label: '🎯 Decisiones', color: 'from-purple-600 to-pink-500' }
+            { key: 'understanding', label: '📊 Values', color: 'from-blue-600 to-cyan-500' },
+            { key: 'gameplay', label: '🎮 Play', color: 'from-green-600 to-emerald-500' },
+            { key: 'livestock', label: '🐄 Livestock', color: 'from-orange-600 to-amber-500' },
+            { key: 'decisions', label: '🎯 Decisions', color: 'from-purple-600 to-pink-500' }
           ].map((tab) => (
             <motion.button
               key={tab.key}
@@ -625,16 +621,15 @@ function StepsGame() {
                 }`}
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => handleSectionChange(tab.key as SectionKey)} // 👈 aquí ya no es any
+              onClick={() => handleSectionChange(tab.key as SectionKey)}
             >
               {tab.label}
             </motion.button>
           ))}
-
         </div>
       </div>
 
-      {/* Contenido principal */}
+      {/* Main content */}
       <div className="flex-1 p-6 overflow-hidden">
         <motion.div
           key={activeSection}
@@ -651,12 +646,12 @@ function StepsGame() {
         </motion.div>
       </div>
 
-      {/* Footer con estadísticas */}
+      {/* Footer with statistics */}
       <div className="bg-gray-800 border-t border-gray-700 p-4">
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-6">
             <div className="text-gray-400">
-              Sección: <span className="text-white font-semibold">{TUTORIAL_DATA[activeSection].title}</span>
+              Section: <span className="text-white font-semibold">{TUTORIAL_DATA[activeSection].title}</span>
             </div>
             <div className="text-gray-400">
               Cards: <span className="text-cyan-400 font-semibold">{TUTORIAL_DATA[activeSection].steps.length}</span>
@@ -665,7 +660,7 @@ function StepsGame() {
 
           <div className="flex items-center gap-4">
             <div className="text-gray-400">
-              Activo: <span className="text-white font-semibold">
+              Active: <span className="text-white font-semibold">
                 {activeStep ?
                   TUTORIAL_DATA[activeSection].steps.findIndex(s => s.id === activeStep) + 1
                   : 0} / {TUTORIAL_DATA[activeSection].steps.length}
@@ -688,21 +683,20 @@ function StepsGame() {
   );
 }
 
-// Componente principal
+// Main component
 export default function GameLayout() {
-  const [selectedMode, setSelectedMode] = useState<GameMode>('cultivar');
-  const router = useRouter();
+  const [selectedMode, setSelectedMode] = useState<GameMode>('cultivate');
 
   const modes = [
-    { id: 'cultivar' as GameMode, icon: '🌿🛰️', title: 'Cultivos NASA', color: 'border-green-500', desc: 'Agricultura inteligente con IA' },
-    { id: 'cuidar' as GameMode, icon: '🐄', title: 'Mundo Animal', color: 'border-orange-500', desc: 'Bienestar y salud animal' },
-    { id: 'investigar' as GameMode, icon: '🔬', title: 'Investigación satelital', color: 'border-purple-500', desc: 'Análisis y experimentación' },
-    { id: 'ia' as GameMode, icon: '🤖', title: 'IA Predictiva', color: 'border-cyan-500', desc: 'Pronósticos inteligentes' },
+    { id: 'cultivate' as GameMode, icon: '🌿🛰️', title: 'NASA Crops', color: 'border-green-500', desc: 'Smart agriculture with AI' },
+    { id: 'care' as GameMode, icon: '🐄', title: 'Animal World', color: 'border-orange-500', desc: 'Animal welfare and health' },
+    { id: 'research' as GameMode, icon: '🔬', title: 'Satellite Research', color: 'border-purple-500', desc: 'Analysis and experimentation' },
+    { id: 'ai' as GameMode, icon: '🤖', title: 'Predictive AI', color: 'border-cyan-500', desc: 'Smart forecasts' },
   ];
 
   return (
     <div className="min-h-screen bg-gray-900 pb-32">
-      {/* Header minimalista */}
+      {/* Minimalist header */}
       <div className="bg-gradient-to-r from-gray-800 to-gray-900 border-b border-gray-700 p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -721,12 +715,12 @@ export default function GameLayout() {
         </div>
       </div>
 
-      {/* Área principal con StepsGame */}
+      {/* Main area with StepsGame */}
       <div className="h-[calc(100vh-200px)]">
         <StepsGame />
       </div>
 
-      {/* Footer con los 4 botones mejorado */}
+      {/* Enhanced footer with 4 buttons */}
       <motion.div
         className="fixed bottom-6 left-6 right-6 grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-900/95 backdrop-blur-lg rounded-2xl p-6 border border-gray-700 shadow-2xl"
         initial={{ opacity: 0, y: 100 }}
@@ -742,17 +736,7 @@ export default function GameLayout() {
               }`}
             whileHover={{ scale: 1.05, y: -5 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              if (mode.id === "cultivar") {
-                router.push("/game/cultivos");
-              } else if (mode.id === "cuidar") {
-                router.push("/game/ganaderia");
-              } else if (mode.id === "investigar") {
-                router.push("/game/investigar");
-              }else {
-                setSelectedMode(mode.id);
-              }
-            }}
+            onClick={() => setSelectedMode(mode.id)}
           >
             <div className="flex flex-col items-center text-center">
               <motion.span
@@ -773,10 +757,10 @@ export default function GameLayout() {
               />
             </div>
 
-            {/* Indicador activo mejorado */}
-            {(mode.id === 'cultivar' || mode.id === 'cuidar') && selectedMode === mode.id && (
+            {/* Enhanced active indicator */}
+            {(mode.id === 'cultivate' || mode.id === 'care') && selectedMode === mode.id && (
               <motion.div
-                className={`absolute -top-2 -right-2 w-4 h-4 rounded-full border-2 border-gray-900 ${mode.id === 'cultivar' ? 'bg-green-500' : 'bg-orange-500'
+                className={`absolute -top-2 -right-2 w-4 h-4 rounded-full border-2 border-gray-900 ${mode.id === 'cultivate' ? 'bg-green-500' : 'bg-orange-500'
                   }`}
                 animate={{ scale: [1, 1.3, 1], opacity: [0.7, 1, 0.7] }}
                 transition={{ duration: 2, repeat: Infinity }}

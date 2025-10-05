@@ -6,7 +6,7 @@ import * as THREE from "three";
 import { useRef, useState, useEffect, Suspense, useMemo } from "react";
 // 💡 CORRECCIÓN 1: Importamos el tipo 'Variants' de framer-motion
 import { motion, Variants } from "framer-motion"; 
-import { Language, translations } from "@/lib/languages/glove.languages";
+import { Language, translations } from "@/lib/languages/translations.languages";
 
 // 🌍 Tierra con imagen (No necesita cambios)
 function Earth() {
