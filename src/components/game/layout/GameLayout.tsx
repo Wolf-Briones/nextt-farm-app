@@ -749,6 +749,8 @@ export default function GameLayout() {
                 router.push("/game/ganaderia");
               } else if (mode.id === "investigar") {
                 router.push("/game/investigar");
+              }else if (mode.id === "ia") {
+                router.push("/game/intelligence");
               }else {
                 setSelectedMode(mode.id);
               }
