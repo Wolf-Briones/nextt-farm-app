@@ -341,28 +341,71 @@ export default function Globe() {
     <div className="fixed inset-0 bg-gradient-to-b from-black via-gray-900 to-emerald-950 overflow-hidden">
       
       {/* Selector de idioma */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 1.5 }}
-        className="absolute top-6 right-6 z-50 flex gap-2"
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.5, type: "spring", stiffness: 100 }}
+        className="absolute top-6 right-6 z-50"
       >
-        <button
-          onClick={() => setLanguage('es')}
-          className={`px-3 py-1 text-sm font-semibold rounded-full transition-colors ${
-            language === 'es' ? 'bg-emerald-500 text-white shadow-lg' : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-          }`}
-        >
-          ES 🇪🇸
-        </button>
-        <button
-          onClick={() => setLanguage('en')}
-          className={`px-3 py-1 text-sm font-semibold rounded-full transition-colors ${
-            language === 'en' ? 'bg-emerald-500 text-white shadow-lg' : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-          }`}
-        >
-          EN 🇬🇧
-        </button>
+        <div className="flex gap-1 bg-gray-800/80 backdrop-blur-md rounded-full p-1.5 shadow-2xl border border-gray-700/50">
+          <button
+            onClick={() => setLanguage('es')}
+            className={`group relative px-4 py-2 rounded-full font-medium text-sm transition-all duration-300 ${
+              language === 'es' 
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/50' 
+                : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+            }`}
+          >
+            <span className="flex items-center gap-2">
+              <svg className="w-5 h-5" viewBox="0 0 32 32" fill="none">
+                <circle cx="16" cy="16" r="15" fill="#AA151B"/>
+                <rect x="1" y="11" width="30" height="10" fill="#F1BF00"/>
+              </svg>
+              ES
+            </span>
+            {language === 'es' && (
+              <motion.div 
+                layoutId="activeTab"
+                className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full -z-10"
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              />
+            )}
+          </button>
+          <button
+            onClick={() => setLanguage('en')}
+            className={`group relative px-4 py-2 rounded-full font-medium text-sm transition-all duration-300 ${
+              language === 'en' 
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/50' 
+                : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
+            }`}
+          >
+            <span className="flex items-center gap-2">
+              <svg className="w-5 h-5" viewBox="0 0 32 32" fill="none">
+                <rect x="1" y="1" width="30" height="30" rx="15" fill="white"/>
+                <mask id="circleMask" maskUnits="userSpaceOnUse">
+                  <circle cx="16" cy="16" r="15" fill="white"/>
+                </mask>
+                <g mask="url(#circleMask)">
+                  <rect y="1" width="32" height="10" fill="#012169"/>
+                  <rect y="11" width="32" height="10" fill="white"/>
+                  <rect y="21" width="32" height="10" fill="#012169"/>
+                  <path d="M1 1 L31 31 M31 1 L1 31" stroke="#C8102E" strokeWidth="6"/>
+                  <path d="M1 1 L31 31 M31 1 L1 31" stroke="white" strokeWidth="4"/>
+                  <path d="M16 1 V31 M1 16 H31" stroke="white" strokeWidth="10"/>
+                  <path d="M16 1 V31 M1 16 H31" stroke="#C8102E" strokeWidth="6"/>
+                </g>
+              </svg>
+              EN
+            </span>
+            {language === 'en' && (
+              <motion.div 
+                layoutId="activeTab"
+                className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full -z-10"
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              />
+            )}
+          </button>
+        </div>
       </motion.div>
 
 
