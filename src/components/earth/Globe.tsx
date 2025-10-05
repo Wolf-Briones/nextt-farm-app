@@ -332,7 +332,7 @@ export default function Globe() {
       icon: "🎮",
       gradient: "from-purple-900/90 to-pink-900/90",
       borderColor: "border-purple-500/40",
-      href: "/game/minijuegos"
+      href: "/game/ia"
     }
   ], [t.modules]);
 
