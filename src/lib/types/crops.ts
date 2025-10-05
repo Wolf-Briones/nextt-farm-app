@@ -144,10 +144,11 @@ export interface CultivosGameProps {
  */
 export interface ParcelMapProps {
   parcels: ParcelState[];
-  onSelectParcel: (parcelId: number) => void;
+  onSelectParcel: (id: number | null) => void;
   selectedCrop: CropType | null;
   autoWateringParcels: Set<number>;
   onManualWatering: (parcelId: number, event: React.MouseEvent) => void;
+  onHarvestParcel: (parcelId: number) => void;
 }
 
 /**

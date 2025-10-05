@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import type { ParcelMapProps } from "@/lib/types/crops";
+import type { ParcelMapProps, ParcelState } from "@/lib/types/crops";
 import { calculateNDVI, calculatePestProbability } from "@/lib/utils/calculations";
 
 export function ParcelMap({
@@ -10,6 +10,7 @@ export function ParcelMap({
   selectedCrop,
   autoWateringParcels,
   onManualWatering,
+  onHarvestParcel,
 }: ParcelMapProps) {
   const getParcelColor = (health: number): string => {
     if (health > 80) return "bg-green-600";
@@ -36,6 +37,29 @@ export function ParcelMap({
     if (difference < 0.05) return "text-green-400";
     if (difference < 0.1) return "text-yellow-400";
     return "text-red-400";
+  };
+
+  const handleParcelClick = (parcel: ParcelState) => {
+    // Si la parcela está lista para cosechar
+    if (parcel.crop && parcel.growthStage >= 100) {
+      // Cosechar la parcela
+      onHarvestParcel(parcel.id);
+      
+      // Buscar otra parcela con cultivo para seleccionarla
+      const otherParcelWithCrop = parcels.find(
+        p => p.id !== parcel.id && p.crop && p.growthStage < 100
+      );
+      
+      if (otherParcelWithCrop) {
+        onSelectParcel(otherParcelWithCrop.id);
+      } else {
+        // Si no hay otras parcelas con cultivo, deseleccionar
+        onSelectParcel(-1);
+      }
+    } else {
+      // Comportamiento normal de selección
+      onSelectParcel(parcel.id);
+    }
   };
 
   return (
@@ -71,6 +95,8 @@ export function ParcelMap({
           const isWaterLow = parcel.waterLevel < 50;
           
           const showIoTAlert = parcel.waterLevel <= 60 && parcel.waterLevel > 45;
+          
+          const isReadyToHarvest = parcel.crop && parcel.growthStage >= 100;
 
           return (
             <motion.div
@@ -78,10 +104,12 @@ export function ParcelMap({
               className={`${parcel.crop ? getParcelColor(parcel.health) : "bg-amber-900"} ${getParcelBorder(
                 parcel.isSelected,
                 !!parcel.crop
-              )} rounded-lg relative overflow-hidden cursor-pointer transition-all duration-300`}
+              )} rounded-lg relative overflow-hidden transition-all duration-300 ${
+                isReadyToHarvest ? 'cursor-pointer ring-4 ring-yellow-400 ring-opacity-50' : 'cursor-pointer'
+              }`}
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => onSelectParcel(parcel.id)}
+              onClick={() => handleParcelClick(parcel)}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: parcel.id * 0.03 }}
@@ -92,7 +120,7 @@ export function ParcelMap({
                 </div>
               )}
               
-              {parcel.crop && showIoTAlert && (
+              {parcel.crop && showIoTAlert && !isReadyToHarvest && (
                 <motion.div
                   className="absolute top-8 left-1 bg-yellow-500/90 text-black px-2 py-0.5 rounded text-xs font-bold"
                   animate={{ scale: [1, 1.05, 1] }}
@@ -102,9 +130,9 @@ export function ParcelMap({
                 </motion.div>
               )}
 
-              {parcel.crop && parcel.growthStage >= 100 && (
+              {isReadyToHarvest && (
                 <motion.div
-                  className="absolute top-1 left-1 right-1 bg-gradient-to-r from-green-500 to-yellow-500 text-white px-2 py-1 rounded text-xs font-bold text-center shadow-lg"
+                  className="absolute top-1 left-1 right-1 bg-gradient-to-r from-green-500 to-yellow-500 text-white px-2 py-1 rounded text-xs font-bold text-center shadow-lg pointer-events-none"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ 
                     opacity: 1, 
@@ -115,7 +143,7 @@ export function ParcelMap({
                     scale: { duration: 1, repeat: Infinity }
                   }}
                 >
-                  🚜 ¡LISTO PARA COSECHAR!
+                  🚜 ¡LISTO PARA COSECHAR! (Click aquí)
                 </motion.div>
               )}
 
@@ -194,7 +222,7 @@ export function ParcelMap({
                       💧{parcel.waterLevel.toFixed(1)}% ❤️{parcel.health.toFixed(1)}%
                     </div>
 
-                    {isWaterCritical && (
+                    {isWaterCritical && !isReadyToHarvest && (
                       <div className="text-xs text-red-200 font-bold animate-pulse mb-1">
                         ⚠️ ¡SED EXTREMA!
                       </div>
@@ -209,7 +237,7 @@ export function ParcelMap({
                       🌿NDVI: {currentNDVI.toFixed(3)}
                     </div>
 
-                    {(parcel.hasPestsAppeared || pestProbability > 10) && (
+                    {(parcel.hasPestsAppeared || pestProbability > 10) && !isReadyToHarvest && (
                       <div
                         className={`text-xs ${getPestProbabilityColor(
                           pestProbability
@@ -229,7 +257,7 @@ export function ParcelMap({
                       </motion.div>
                     )}
 
-                    {autoWateringParcels.has(parcel.id) && (
+                    {autoWateringParcels.has(parcel.id) && !isReadyToHarvest && (
                       <motion.div
                         className="absolute bottom-1 right-1 bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold shadow-lg"
                         animate={{
@@ -252,7 +280,7 @@ export function ParcelMap({
                   </div>
                 )}
 
-                {parcel.crop && (
+                {parcel.crop && !isReadyToHarvest && (
                   <div className="absolute bottom-2 left-2 right-2 space-y-1">
                     <div className="flex gap-1">
                       <div
@@ -286,7 +314,7 @@ export function ParcelMap({
                 />
               )}
 
-              {parcel.crop && parcel.pestLevel > 70 && (
+              {parcel.crop && parcel.pestLevel > 70 && !isReadyToHarvest && (
                 <motion.div
                   className="absolute inset-0 bg-red-500/20"
                   animate={{ opacity: [0.2, 0.5, 0.2] }}
@@ -294,7 +322,7 @@ export function ParcelMap({
                 />
               )}
               
-              {parcel.crop && isWaterCritical && (
+              {parcel.crop && isWaterCritical && !isReadyToHarvest && (
                 <motion.div
                   className="absolute inset-0 bg-red-500/30 pointer-events-none"
                   animate={{ opacity: [0.3, 0.6, 0.3] }}
@@ -324,6 +352,10 @@ export function ParcelMap({
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
               <span className="text-gray-400">Crítico</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-yellow-400">🚜</span>
+              <span className="text-gray-400">Click para cosechar</span>
             </div>
           </div>
         </div>

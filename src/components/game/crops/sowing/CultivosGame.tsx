@@ -5,6 +5,7 @@ import type { CropType, ParcelState, CultivosGameProps } from "@/lib/types/crops
 import { useNASAData } from "@/hooks/useNASAData";
 import { useGameLogic } from "@/hooks/useGameLogic";
 import { useAutoWatering } from "@/hooks/useAutoWatering";
+import { calculateHarvestYield } from "@/lib/utils/calculations";
 import { ParcelMap } from "@/components/game/crops/sowing/ParcelMap";
 import { CropSelector } from "@/components/game/crops/sowing/CropSelector";
 
@@ -96,6 +97,62 @@ export default function CultivosGame({
     updateXP(currentXP + 5);
   };
 
+  // Manejador de cosecha
+  const handleHarvest = (parcelId: number) => {
+    const parcelToHarvest = parcels.find((p) => p.id === parcelId);
+
+    if (!parcelToHarvest || !parcelToHarvest.crop) {
+      return;
+    }
+
+    // Calcular recompensas usando la función de utilidades
+    const totalReward = calculateHarvestYield(parcelToHarvest);
+    const xpGained = 50;
+
+    // Actualizar dinero y XP
+    updateMoney(currentMoney + totalReward);
+    updateXP(currentXP + xpGained);
+
+    // Resetear la parcela
+    const updatedParcels = parcels.map((parcel) => {
+      if (parcel.id === parcelId) {
+        return {
+          ...parcel,
+          crop: null,
+          plantedDate: null,
+          growthStage: 0,
+          health: 100,
+          waterLevel: 80,
+          fertilizerLevel: 50,
+          pestLevel: Math.random() * 20,
+          ndviValue: 0.45,
+          isSelected: false,
+          lastAction: `Cosechado: +${totalReward}, +${xpGained}XP`,
+          daysToHarvest: 0,
+          hasPestsAppeared: false,
+        };
+      }
+      return parcel;
+    });
+
+    // Buscar otra parcela con cultivo para seleccionarla
+    const otherParcelWithCrop = updatedParcels.find(
+      (p) => p.id !== parcelId && p.crop && p.growthStage < 100
+    );
+
+    // Si hay otra parcela con cultivo, seleccionarla
+    const finalParcels = updatedParcels.map((parcel) => ({
+      ...parcel,
+      isSelected: otherParcelWithCrop ? parcel.id === otherParcelWithCrop.id : false,
+    }));
+
+    if (onParcelsChange) {
+      onParcelsChange(finalParcels);
+    } else {
+      setParcels(finalParcels);
+    }
+  };
+
   return (
     <div className="h-full flex flex-col space-y-4">
       {/* Panel de estado del jugador */}
@@ -165,18 +222,21 @@ export default function CultivosGame({
         <ParcelMap
           parcels={parcels}
           onSelectParcel={(id) =>
-            handleSelectParcel(
-              id,
-              selectedCrop,
-              currentMoney,
-              updateMoney,
-              updateXP,
-              currentXP
-            )
+            id === null
+              ? setParcels(prev => prev.map(p => ({ ...p, isSelected: false })))
+              : handleSelectParcel(
+                id,
+                selectedCrop,
+                currentMoney,
+                updateMoney,
+                updateXP,
+                currentXP
+              )
           }
           selectedCrop={selectedCrop}
           autoWateringParcels={autoWateringParcels}
           onManualWatering={handleManualWatering}
+          onHarvestParcel={handleHarvest}
         />
       </div>
     </div>

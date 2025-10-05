@@ -56,7 +56,7 @@ export const Header: React.FC<HeaderProps> = ({
                             className="opacity-0 max-w-0 group-hover:opacity-100 group-hover:max-w-[100px]
                          overflow-hidden transition-all duration-500 ease-out"
                         >
-                            Regresar
+                            Ir Atrás
                         </span>
                     </Link>
                 </div>
