@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import InteractiveFarmMap from "@/components/game/livestock/InteractiveFarmMap";
 import AnimalAlertPanel from "@/components/game/livestock/AnimalAlertPanel";
 import ProductionPanel from "@/components/game/livestock/ProductionPanell";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 interface Animal {
     id: string;
@@ -570,6 +572,27 @@ export default function AnimalInterface() {
         <div className="h-full space-y-4">
             {/* Header */}
             <div className="flex items-center justify-between">
+                <div className="text-center">
+                    <div
+                        className={`font-bold`}
+                    >
+                        <Link
+                            href="/game"
+                            className="group inline-flex items-center justify-center gap-3 px-20 py-4 mx-10 
+                     bg-gradient-to-r from-emerald-600 via-green-500 to-cyan-500
+                     text-white font-semibold rounded-2xl tracking-wide
+                     shadow-[0_0_20px_#00ff99] hover:shadow-[0_0_35px_#00ffaa]
+                     hover:scale-105 transition-all duration-300 ease-out
+                     animate-pulse-slow border border-emerald-400/30"
+                        >
+                            {/* Ícono de flecha con animación */}
+                            <ArrowLeft
+                                className="w-5 h-5 text-white transition-transform duration-300 ease-out group-hover:-translate-x-1"
+                            />
+                            Atrás
+                        </Link>
+                    </div>
+                </div>
                 <div className="flex items-center space-x-3">
                     <span className="text-3xl">🐄</span>
                     <div>

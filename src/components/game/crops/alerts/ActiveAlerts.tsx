@@ -1,4 +1,4 @@
-// src/components/game/crops/alerts/ActiveAlerts.tsx
+
 "use client";
 
 import { useState, type ElementType } from "react";

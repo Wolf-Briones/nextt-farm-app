@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { RefreshCw, Satellite, Database, CheckCircle, AlertCircle } from "lucide-react";
 
@@ -32,7 +32,7 @@ export default function RealTimeDataUpdater({
   onDataUpdate, 
   regionLat, 
   regionLon,
-  updateInterval = 5
+  updateInterval = 1 // Cambiado a 1 minuto
 }: RealTimeDataUpdaterProps) {
   const [dataSources, setDataSources] = useState<DataSource[]>([
     { name: 'NASA POWER', status: 'loading', lastUpdate: null, icon: '🛰️' },
@@ -44,6 +44,16 @@ export default function RealTimeDataUpdater({
   const [isUpdating, setIsUpdating] = useState(false);
   const [nextUpdate, setNextUpdate] = useState<Date | null>(null);
   const [countdown, setCountdown] = useState<number>(updateInterval * 60);
+
+  // Usar useRef para mantener la función de callback sin recrearla
+  const onDataUpdateRef = useRef(onDataUpdate);
+  
+  useEffect(() => {
+    onDataUpdateRef.current = onDataUpdate;
+  }, [onDataUpdate]);
+
+  // Usar useRef para evitar recreaciones de la función
+  const prevRegionRef = useRef({ lat: regionLat, lon: regionLon });
 
   const fetchDataFromSource = async (sourceName: string): Promise<SourceData> => {
     await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
@@ -87,7 +97,7 @@ export default function RealTimeDataUpdater({
         ));
 
         if (source === 'Análisis Local') {
-          onDataUpdate(data);
+          onDataUpdateRef.current(data);
         }
 
       } catch (err) {
@@ -103,12 +113,28 @@ export default function RealTimeDataUpdater({
     setIsUpdating(false);
     setNextUpdate(new Date(Date.now() + updateInterval * 60 * 1000));
     setCountdown(updateInterval * 60);
-  }, [onDataUpdate, updateInterval]);
+  }, [updateInterval]);
 
+  // Efecto separado para la primera carga y cambios de región
   useEffect(() => {
-    updateAllSources();
+    const regionChanged = 
+      prevRegionRef.current.lat !== regionLat || 
+      prevRegionRef.current.lon !== regionLon;
+
+    if (regionChanged) {
+      console.log('Región cambiada, actualizando datos...');
+      prevRegionRef.current = { lat: regionLat, lon: regionLon };
+      updateAllSources();
+    }
   }, [regionLat, regionLon, updateAllSources]);
 
+  // Efecto para primera carga (solo una vez)
+  useEffect(() => {
+    updateAllSources();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Solo se ejecuta al montar
+
+  // Efecto para el countdown automático
   useEffect(() => {
     if (!isUpdating && countdown > 0) {
       const timer = setInterval(() => {
@@ -214,6 +240,9 @@ export default function RealTimeDataUpdater({
           <div className="text-xs text-gray-400 mb-1">Próxima actualización</div>
           <div className="text-lg font-bold text-cyan-400 font-mono">
             {formatCountdown(countdown)}
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            Intervalo: {updateInterval} min
           </div>
         </div>
       )}
