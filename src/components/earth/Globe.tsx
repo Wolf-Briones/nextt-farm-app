@@ -1,33 +1,16 @@
 "use client";
 
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import { OrbitControls, Stars } from "@react-three/drei";
 import * as THREE from "three";
 import { useRef, useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
 
-// 🌍 Tierra con video
-function Earth({ playing }: { playing: boolean }) {
+// 🌍 Tierra con imagen
+function Earth() {
   const RADIUS = 2;
   const earthRef = useRef<THREE.Mesh>(null);
-  const [texture, setTexture] = useState<THREE.VideoTexture | null>(null);
-
-  useEffect(() => {
-    const video = document.createElement("video");
-    video.src = "/videos/earth.mp4"; // archivo en /public/videos
-    video.loop = true;
-    video.muted = true;
-    video.playsInline = true;
-
-    if (playing) video.play();
-
-    const videoTexture = new THREE.VideoTexture(video);
-    videoTexture.minFilter = THREE.LinearFilter;
-    videoTexture.magFilter = THREE.LinearFilter;
-    videoTexture.format = THREE.RGBFormat;
-
-    setTexture(videoTexture);
-  }, [playing]);
+  const texture = useLoader(THREE.TextureLoader, "/earth/earthmap.jpg");
 
   useFrame(() => {
     if (earthRef.current) {
@@ -36,40 +19,9 @@ function Earth({ playing }: { playing: boolean }) {
   });
 
   return (
-    <group>
-      {/* Globo principal con el video */}
-      <mesh ref={earthRef} rotation={[0, 0, 0]}>
-        <sphereGeometry args={[RADIUS, 64, 64]} />
-        {texture && <meshStandardMaterial map={texture} />}
-      </mesh>
-
-      {/* 🌐 Círculo límite visible */}
-      <mesh>
-        <sphereGeometry args={[RADIUS + 0.01, 64, 64]} />
-        <meshBasicMaterial color="cyan" wireframe transparent opacity={0.2} />
-      </mesh>
-    </group>
-  );
-}
-
-// 📍 Marcador dinámico
-function Marker({ lat, lon, isUserLocation = false }: { lat: number; lon: number; isUserLocation?: boolean }) {
-  const RADIUS = 2.01;
-  const latitude = lat * (Math.PI / 180);
-  const longitude = lon * (Math.PI / 180);
-
-  const x = RADIUS * Math.cos(latitude) * Math.cos(longitude);
-  const y = RADIUS * Math.sin(latitude);
-  const z = RADIUS * Math.cos(latitude) * Math.sin(longitude);
-
-  return (
-    <mesh position={[x, y, z]}>
-      <sphereGeometry args={[0.06, 16, 16]} />
-      <meshStandardMaterial
-        color={isUserLocation ? "aquamarine" : "red"}
-        emissive={isUserLocation ? "aquamarine" : "red"}
-        emissiveIntensity={isUserLocation ? 1.5 : 1.0}
-      />
+    <mesh ref={earthRef} rotation={[0, 0, 0]}>
+      <sphereGeometry args={[RADIUS, 64, 64]} />
+      <meshStandardMaterial map={texture} />
     </mesh>
   );
 }
@@ -105,14 +57,14 @@ function Comets() {
           position={[-50 + Math.random() * 20, 30 + Math.random() * 20, -10]}
         >
           <sphereGeometry args={[0.1, 8, 8]} />
-          <meshBasicMaterial color="white" />
+          <meshStandardMaterial color="white" emissive="white" emissiveIntensity={0.5} />
         </mesh>
       ))}
     </>
   );
 }
 
-// ⏳ Barra de carga
+// ⏳ Barra de carga futurista
 function LoadingBar({ onFinish }: { onFinish: () => void }) {
   const [progress, setProgress] = useState(0);
 
@@ -131,8 +83,24 @@ function LoadingBar({ onFinish }: { onFinish: () => void }) {
   }, [progress, onFinish]);
 
   return (
-    <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-64 bg-gray-700 rounded">
-      <div className="h-3 bg-cyan-400 rounded" style={{ width: `${progress}%` }} />
+    <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-80 z-50 pointer-events-none">
+      <div className="mb-2 flex justify-between items-center">
+        <span className="text-emerald-400 text-sm font-semibold">
+          Inicializando Sistema Agrícola
+        </span>
+        <span className="text-cyan-300 text-sm font-mono">{progress}%</span>
+      </div>
+
+      <div className="h-4 bg-gray-800 rounded-full border border-emerald-500/30 overflow-hidden">
+        <div
+          className="h-full bg-gradient-to-r from-emerald-500 via-green-400 to-cyan-500 rounded-full transition-all duration-300 shadow-lg shadow-emerald-500/50"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
+      <p className="text-gray-400 text-xs text-center mt-2">
+        Conectando con sistemas de monitoreo global...
+      </p>
     </div>
   );
 }
@@ -144,13 +112,59 @@ interface LocationData {
   country?: string;
 }
 
-// Default location constant outside component to avoid re-renders
 const defaultLocation: LocationData = {
   lat: -7.1638,
   lon: -78.5034,
   city: "Cajamarca",
   country: "Perú",
 };
+
+// 🎴 Cards de módulos
+interface ModuleCardProps {
+  title: string;
+  description: string;
+  icon: string;
+  gradient: string;
+  borderColor: string;
+  href: string;
+  delay: number;
+}
+
+function ModuleCard({ title, description, icon, gradient, borderColor, href, delay }: ModuleCardProps) {
+  return (
+    <motion.a
+      href={href}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      whileHover={{ scale: 1.05, y: -5 }}
+      whileTap={{ scale: 0.95 }}
+      className="block group"
+    >
+      <div className={`relative bg-gradient-to-br ${gradient} backdrop-blur-md rounded-2xl p-4 border ${borderColor} shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden`}>
+        {/* Efecto de brillo en hover */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-14 h-14 bg-white/10 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+              <span className="text-3xl">{icon}</span>
+            </div>
+            <div>
+              <h3 className="text-white font-bold text-lg">{title}</h3>
+              <p className="text-white/70 text-xs">{description}</p>
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-center justify-between bg-black/20 rounded-lg p-2 border border-white/10">
+            <span className="text-white/80 text-sm font-medium">🤖Explorar🚀</span>
+            <span className="text-xl group-hover:translate-x-1 transition-transform">→</span>
+          </div>
+        </div>
+      </div>
+    </motion.a>
+  );
+}
 
 export default function Globe() {
   const [userLocation, setUserLocation] = useState<LocationData | null>(null);
@@ -162,8 +176,45 @@ export default function Globe() {
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
           const { latitude, longitude } = pos.coords;
-          setUserLocation({ lat: latitude, lon: longitude, city: "Tu ubicación", country: "Detectado" });
-          setLocationStatus("success");
+
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`,
+              {
+                headers: {
+                  'Accept-Language': 'es'
+                }
+              }
+            );
+
+            const data = await response.json();
+
+            const city = data.address?.city ||
+              data.address?.town ||
+              data.address?.village ||
+              data.address?.municipality ||
+              data.address?.county ||
+              "Ubicación detectada";
+
+            const country = data.address?.country || "Detectado";
+
+            setUserLocation({
+              lat: latitude,
+              lon: longitude,
+              city: city,
+              country: country
+            });
+            setLocationStatus("success");
+          } catch (error) {
+            console.error("Error obteniendo ubicación:", error);
+            setUserLocation({
+              lat: latitude,
+              lon: longitude,
+              city: "Tu ubicación",
+              country: "Detectado"
+            });
+            setLocationStatus("success");
+          }
         },
         () => {
           setLocationStatus("error");
@@ -176,35 +227,186 @@ export default function Globe() {
     }
   }, []);
 
+  const modules = [
+    {
+      title: "Cultivos",
+      description: "Gestión de siembra",
+      icon: "🌾",
+      gradient: "from-emerald-900/90 to-green-900/90",
+      borderColor: "border-emerald-500/40",
+      href: "/game/cultivos"
+    },
+    {
+      title: "Ganadería",
+      description: "Monitoreo de ganado",
+      icon: "🐄",
+      gradient: "from-amber-900/90 to-orange-900/90",
+      borderColor: "border-amber-500/40",
+      href: "/game/ganaderia"
+    },
+    {
+      title: "Investigación",
+      description: "Laboratorio agrícola",
+      icon: "🔬",
+      gradient: "from-blue-900/90 to-cyan-900/90",
+      borderColor: "border-cyan-500/40",
+      href: "/game/investigar"
+    },
+    {
+      title: "Minijuegos",
+      description: "Desafíos espaciales",
+      icon: "🎮",
+      gradient: "from-purple-900/90 to-pink-900/90",
+      borderColor: "border-purple-500/40",
+      href: "/game/minijuegos"
+    }
+  ];
+
   return (
-    <div className="fixed inset-0 bg-black overflow-hidden">
+    <div className="fixed inset-0 bg-gradient-to-b from-black via-gray-900 to-emerald-950 overflow-hidden">
       {!ready && <LoadingBar onFinish={() => setReady(true)} />}
 
       {ready && (
         <>
-          <h1 className="absolute top-6 left-1/2 -translate-x-1/2 text-4xl font-bold text-white z-10 animate-pulse drop-shadow-lg">
-            🌌 Explorando <span className="text-cyan-300">SPACE FARM</span>
-          </h1>
+          {/* Header futurista */}
+          <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent p-6">
+            <motion.h1
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-green-300 to-cyan-400 drop-shadow-2xl"
+            >
+              🌱 SPACE FARM
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-center text-emerald-300/80 text-sm mt-2 font-light tracking-wide"
+            >
+              Sistema de Agricultura Inteligente Global
+            </motion.p>
+          </div>
+
+          {/* Panel de información de ubicación */}
           {userLocation && (
-            <div className="absolute top-20 left-6 z-10 bg-black/70 backdrop-blur-sm rounded-lg p-3 border border-cyan-500/30">
-              <p className="text-white text-sm">
-                📍 {userLocation.city}, {userLocation.country}
-              </p>
-              <p className="text-cyan-300 text-xs">
-                {userLocation.lat.toFixed(4)}°, {userLocation.lon.toFixed(4)}°
-              </p>
-            </div>
+            <>
+              <motion.div
+                initial={{ opacity: 0, x: -100 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.5 }}
+                className="absolute top-28 left-6 z-10 bg-gradient-to-br from-emerald-900/90 to-gray-900/90 backdrop-blur-md rounded-2xl p-5 border border-emerald-500/40 shadow-2xl shadow-emerald-500/20 max-w-xs"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-2xl">📍</span>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-bold text-lg">Tu Ubicación</h3>
+                    <p className="text-emerald-300 text-xs">GPS Activo</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2 bg-black/30 rounded-lg p-3 border border-emerald-500/20">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-xs">Ciudad:</span>
+                    <span className="text-white text-sm font-semibold">{userLocation.city}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-xs">País:</span>
+                    <span className="text-emerald-300 text-sm">{userLocation.country}</span>
+                  </div>
+                  <div className="border-t border-emerald-500/20 pt-2 mt-2">
+                    <div className="text-xs text-gray-400 mb-1">Coordenadas GPS</div>
+                    <div className="font-mono text-cyan-400 text-xs">
+                      LAT: {userLocation.lat.toFixed(4)}°
+                    </div>
+                    <div className="font-mono text-cyan-400 text-xs">
+                      LON: {userLocation.lon.toFixed(4)}°
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              <div className="absolute top-[340px] left-6 z-20 flex gap-1 text-emerald-400 text-2xl font-semibold tracking-wide drop-shadow-[0_0_8px_#00ff99]">
+                {["Juega,", "aprende", "y", "transforma", "el", "planeta"].map((word, index) => (
+                  <motion.span
+                    key={index}
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{
+                      delay: 1 + index * 0.3, 
+                      duration: 0.6,
+                      ease: "easeOut",
+                    }}
+                    className="inline-block"
+                  >
+                    {word}
+                  </motion.span>
+                ))}
+              </div>
+            </>
           )}
+
+          {/* Grid de módulos - Lado derecho */}
+          <div className="absolute top-28 right-6 z-10 grid grid-cols-2 gap-3 max-w-2xl">
+            {modules.map((module, index) => (
+              <ModuleCard
+                key={module.title}
+                {...module}
+                delay={0.6 + index * 0.1}
+              />
+            ))}
+          </div>
+
+          {/* Stats en tiempo real - Abajo a la derecha */}
+          <motion.div
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.0 }}
+            className="absolute bottom-32 right-6 z-10 bg-gradient-to-br from-gray-900/90 to-emerald-900/90 backdrop-blur-md rounded-2xl p-4 border border-emerald-500/40 shadow-2xl shadow-emerald-500/20"
+          >
+            <h4 className="text-emerald-300 font-bold text-sm mb-3 flex items-center gap-2">
+              <span>🌾</span> Datos en Tiempo Real
+            </h4>
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between gap-4">
+                <span className="text-gray-400">Áreas monitoreadas:</span>
+                <span className="text-white font-bold">2,847 ha</span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-gray-400">Cultivos activos:</span>
+                <span className="text-emerald-400 font-bold">156</span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-gray-400">Eficiencia hídrica:</span>
+                <span className="text-cyan-400 font-bold">94%</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Botón CTA mejorado */}
           <motion.a
             href="/game"
-            whileHover={{ scale: 1.1, boxShadow: "0px 0px 25px rgba(127, 255, 212, 0.9)" }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 1.1 }}
+            whileHover={{
+              scale: 1.05,
+              boxShadow: "0px 0px 40px rgba(16, 185, 129, 0.8)"
+            }}
             whileTap={{ scale: 0.95 }}
-            className="absolute bottom-10 left-1/2 -translate-x-1/2 px-8 py-3 
-                       text-lg font-bold text-white rounded-full shadow-xl 
-                       bg-gradient-to-r from-aquamarine to-cyan-600 
-                       hover:opacity-90 transition duration-300 z-10"
+            className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 group"
           >
-            Explorar 🚀 Challenge NASA 2025
+            <div className="relative px-10 py-4 text-lg font-bold text-white rounded-full shadow-2xl 
+                           bg-gradient-to-r from-emerald-600 via-green-500 to-cyan-500 
+                           hover:from-emerald-500 hover:to-cyan-400 transition-all duration-300
+                           border-2 border-emerald-400/50">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🚀</span>
+                <span>Iniciar Challenge NASA 2025</span>
+              </div>
+              <div className="absolute inset-0 rounded-full bg-white/20 blur-xl group-hover:bg-white/30 transition-all duration-300 -z-10"></div>
+            </div>
           </motion.a>
         </>
       )}
@@ -214,16 +416,10 @@ export default function Globe() {
         <Comets />
         <ambientLight intensity={0.5} />
         <directionalLight position={[5, 3, 5]} intensity={1.2} />
+        <pointLight position={[-5, -3, -5]} intensity={0.3} color="#10b981" />
 
         <Suspense fallback={null}>
-          {/* 🎥 El video comienza junto con el loading */}
-          <Earth playing={true} />
-
-          {/* Marcadores */}
-          <Marker lat={defaultLocation.lat} lon={defaultLocation.lon} />
-          {userLocation && locationStatus === "success" && (
-            <Marker lat={userLocation.lat} lon={userLocation.lon} isUserLocation={true} />
-          )}
+          <Earth />
         </Suspense>
 
         <OrbitControls enableZoom={true} />

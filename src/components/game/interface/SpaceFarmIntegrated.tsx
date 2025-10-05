@@ -7,7 +7,7 @@ import { ParcelMap } from "@/components/game/crops/sowing/ParcelMap";
 import { CropSelector } from "@/components/game/crops/sowing/CropSelector";
 import { DecisionCards } from "@/components/game/crops/sowing/DecisionCards";
 import MiniGame from "@/components/game/crops/minigames/MinigamesSystem";
-import RewardsSystem from "@/components/game/crops/RewardsSystem";
+import RewardsSystem from "@/components/game/crops/rewards/RewardsSystem";
 import UpdateTime from "@/components/game/crops/UpdateTime";
 import { useNASAData, type UseNASADataReturn } from "@/hooks/useNASAData";
 import { useGameLogic } from "@/hooks/useGameLogic";
