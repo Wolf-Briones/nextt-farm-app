@@ -15,6 +15,8 @@ import { useAutoWatering } from "@/hooks/useAutoWatering";
 import type { ParcelState, CropType } from "@/lib/types/crops";
 import EarlyWarning, { type RegionConfig, type WeatherData } from "@/components/game/crops/alerts/EarlyWarning";
 import ActiveAlerts from "@/components/game/crops/alerts/ActiveAlerts";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 type GameMode = 'cultivar' | 'minijuegos' | 'logros' | 'alertas';
 
@@ -96,7 +98,7 @@ const DynamicRightPanel = ({
                         )
                     };
                 }
-                
+
 
             default:
                 return {
@@ -346,9 +348,9 @@ const NotificationSystem = ({ notifications }: { notifications: NotificationSyst
                     <motion.div
                         key={alert.id}
                         className={`p-4 rounded-lg border-l-4 max-w-sm shadow-lg ${alert.type === 'success' ? 'bg-green-900/90 border-green-500' :
-                                alert.type === 'warning' ? 'bg-yellow-900/90 border-yellow-500' :
-                                    alert.type === 'error' ? 'bg-red-900/90 border-red-500' :
-                                        'bg-blue-900/90 border-blue-500'
+                            alert.type === 'warning' ? 'bg-yellow-900/90 border-yellow-500' :
+                                alert.type === 'error' ? 'bg-red-900/90 border-red-500' :
+                                    'bg-blue-900/90 border-blue-500'
                             }`}
                         initial={{ opacity: 0, x: 100, scale: 0.8 }}
                         animate={{ opacity: 1, x: 0, scale: 1 }}
@@ -557,7 +559,6 @@ export default function SpaceFarmIntegrated() {
                             </p>
                         </div>
                     </div>
-
                     <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
                         <div className="flex items-center gap-6">
                             <div className="flex items-center gap-3">
@@ -598,6 +599,27 @@ export default function SpaceFarmIntegrated() {
                                     </div>
                                     <div className="text-gray-400">
                                         IoT {localMoney >= 20 ? 'Activo' : 'Inactivo'}
+                                    </div>
+                                </div>
+                                <div className="text-center mx-10">
+                                    <div
+                                        className={`font-bold `}
+                                    >
+                                        <Link
+                                            href="/game"
+                                            className="group inline-flex items-center justify-center gap-3 px-20 py-4 mx-10 
+                                                        bg-gradient-to-r from-emerald-600 via-green-500 to-cyan-500
+                                                      text-white font-semibold rounded-2xl tracking-wide
+                                                        shadow-[0_0_20px_#00ff99] hover:shadow-[0_0_35px_#00ffaa]
+                                                        hover:scale-105 transition-all duration-300 ease-out
+                                                        animate-pulse-slow border border-emerald-400/30"
+                                        >
+                                            {/* Ícono de flecha con animación */}
+                                            <ArrowLeft
+                                                className="w-5 h-5 text-white transition-transform duration-300 ease-out group-hover:-translate-x-1"
+                                            />
+                                            Atrás
+                                        </Link>
                                     </div>
                                 </div>
                             </div>
@@ -694,8 +716,8 @@ export default function SpaceFarmIntegrated() {
                         <motion.button
                             key={mode.id}
                             className={`p-3 rounded-lg border-2 text-center transition-all ${selectedMode === mode.id
-                                    ? `${mode.color} bg-gray-800 shadow-lg`
-                                    : 'border-gray-700 bg-gray-800 hover:border-gray-500'
+                                ? `${mode.color} bg-gray-800 shadow-lg`
+                                : 'border-gray-700 bg-gray-800 hover:border-gray-500'
                                 }`}
                             whileHover={{ scale: 1.05, y: -2 }}
                             whileTap={{ scale: 0.95 }}
@@ -703,7 +725,7 @@ export default function SpaceFarmIntegrated() {
                         >
                             <div className="text-2xl mb-1">{mode.icon}</div>
                             <div className="text-white text-xs font-semibold">{mode.title}</div>
-                            
+
                         </motion.button>
                     ))}
                 </div>

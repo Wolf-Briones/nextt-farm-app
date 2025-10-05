@@ -1,9 +1,9 @@
-// src/components/game/crops/alerts/EarlyWarning.tsx
+
 "use client";
 
 import { useState, useEffect } from "react";
 import { MapPin, Search, Cloud, Droplets, Thermometer, Wind } from "lucide-react";
-import RealTimeDataUpdater from "./RealTimeDataUpdater";
+import RealTimeDataUpdater from "@/components/game/crops/alerts/RealTimeDataUpdater";
 
 export type ClimateZone = 'coast' | 'highlands' | 'jungle' | 'desert';
 
@@ -180,7 +180,7 @@ export default function EarlyWarning({ onRegionChange }: EarlyWarningProps) {
     setSelectedRegion(region);
     const newWeather = generateWeatherForClimate(region);
     setWeatherData(newWeather);
-    
+
     if (onRegionChange) {
       onRegionChange(region, newWeather);
     }
@@ -189,7 +189,7 @@ export default function EarlyWarning({ onRegionChange }: EarlyWarningProps) {
   const handleDataUpdate = () => {
     const newWeather = generateWeatherForClimate(selectedRegion);
     setWeatherData(newWeather);
-    
+
     if (onRegionChange) {
       onRegionChange(selectedRegion, newWeather);
     }
@@ -198,7 +198,7 @@ export default function EarlyWarning({ onRegionChange }: EarlyWarningProps) {
   useEffect(() => {
     const data = generateWeatherForClimate(selectedRegion);
     setWeatherData(data);
-    
+
     if (onRegionChange) {
       onRegionChange(selectedRegion, data);
     }
@@ -248,14 +248,14 @@ export default function EarlyWarning({ onRegionChange }: EarlyWarningProps) {
   const zoneInfo = getClimateZoneInfo();
 
   return (
-    <div className="h-full flex flex-col gap-4">
+    <div className="h-full flex flex-col gap-4 overflow-y-auto pr-2">
       {/* Selector de región */}
       <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
         <div className="flex items-center gap-3 mb-3">
           <MapPin className="w-5 h-5 text-cyan-400" />
           <h3 className="text-lg font-bold text-white">Seleccionar Región de Perú</h3>
         </div>
-        
+
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
@@ -269,19 +269,18 @@ export default function EarlyWarning({ onRegionChange }: EarlyWarningProps) {
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 max-h-32 overflow-y-auto">
           {filteredRegions.map((region) => {
-            const zoneEmoji = region.climateZone === 'coast' ? '🏖️' : 
-                            region.climateZone === 'highlands' ? '⛰️' : 
-                            region.climateZone === 'jungle' ? '🌴' : '🏜️';
-            
+            const zoneEmoji = region.climateZone === 'coast' ? '🏖️' :
+              region.climateZone === 'highlands' ? '⛰️' :
+                region.climateZone === 'jungle' ? '🌴' : '🏜️';
+
             return (
               <button
                 key={region.name}
                 onClick={() => handleRegionSelect(region)}
-                className={`p-2 rounded border-2 transition-all ${
-                  selectedRegion.name === region.name
+                className={`p-2 rounded border-2 transition-all ${selectedRegion.name === region.name
                     ? 'border-cyan-400 bg-cyan-900/20 text-white scale-105'
                     : 'border-gray-600 bg-gray-700 text-gray-300 hover:border-cyan-600 hover:scale-102'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2">
                   <span className="text-xl">{zoneEmoji}</span>
@@ -319,7 +318,7 @@ export default function EarlyWarning({ onRegionChange }: EarlyWarningProps) {
               <div className="text-xs text-gray-400">{zoneInfo.description}</div>
             </div>
           </div>
-          
+
           <div className="mt-3 pt-3 border-t border-gray-700">
             <div className="text-xs text-gray-400 mb-2">Riesgos Principales:</div>
             <div className="flex flex-wrap gap-2">
@@ -366,7 +365,6 @@ export default function EarlyWarning({ onRegionChange }: EarlyWarningProps) {
             <Cloud className="w-4 h-4" />
             Condiciones Actuales
           </h3>
-          
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-gray-700 rounded p-3">
               <div className="flex items-center gap-2 mb-2">
@@ -403,27 +401,28 @@ export default function EarlyWarning({ onRegionChange }: EarlyWarningProps) {
               </div>
               <div className="text-purple-400 font-bold text-lg">{weatherData.humidity.toFixed(0)}%</div>
               <div className="text-xs text-gray-400 mt-1">
-                {weatherData.humidity > 80 ? 'Muy Alto' : 
-                 weatherData.humidity > 60 ? 'Alto' : 
-                 weatherData.humidity > 40 ? 'Moderado' : 'Bajo'}
+                {weatherData.humidity > 80 ? 'Muy Alto' :
+                  weatherData.humidity > 60 ? 'Alto' :
+                    weatherData.humidity > 40 ? 'Moderado' : 'Bajo'}
               </div>
             </div>
 
             <div className="bg-gray-700 rounded p-3">
               <div className="flex items-center gap-2 mb-2">
                 <Wind className="w-4 h-4 text-cyan-400" />
-                <span className="text-white text-xs">Acumulado 30d</span>
+                <span className="text-white text-xs">Acumulado 30 d</span>
               </div>
               <div className="text-cyan-400 font-bold text-lg">{weatherData.rainfall30d.toFixed(0)}mm</div>
               <div className="text-xs text-gray-400 mt-1">
-                {weatherData.rainfall30d > 200 ? 'Muy Húmedo' : 
-                 weatherData.rainfall30d > 100 ? 'Húmedo' : 
-                 weatherData.rainfall30d > 50 ? 'Normal' : 'Seco'}
+                {weatherData.rainfall30d > 200 ? 'Muy Húmedo' :
+                  weatherData.rainfall30d > 100 ? 'Húmedo' :
+                    weatherData.rainfall30d > 50 ? 'Normal' : 'Seco'}
               </div>
             </div>
           </div>
         </div>
       )}
+      <div className="h-8"></div>
     </div>
   );
 }
