@@ -334,7 +334,7 @@ export default function Globe() {
                     initial={{ opacity: 0, x: -30 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{
-                      delay: 1 + index * 0.3, 
+                      delay: 1 + index * 0.3,
                       duration: 0.6,
                       ease: "easeOut",
                     }}
