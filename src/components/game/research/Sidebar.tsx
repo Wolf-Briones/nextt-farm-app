@@ -42,8 +42,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectLayer
 }) => {
   return (
-    <aside className="w-72 bg-gray-800 text-white overflow-y-auto shadow-xl">
-      <div className="p-3 space-y-3">
+    <aside className="w-80 bg-gradient-to-b from-gray-800 via-gray-850 to-gray-900 text-white overflow-y-auto shadow-2xl border-r border-blue-500/20 custom-scrollbar">
+      <div className="p-4 space-y-4">
         <DateControl
           selectedDate={selectedDate}
           isPlaying={isPlaying}
@@ -70,6 +70,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <ActiveLayerInfo layerInfo={activeLayerInfo} />
       </div>
+
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.2);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(59, 130, 246, 0.5);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(59, 130, 246, 0.7);
+        }
+      `}</style>
     </aside>
   );
 };
