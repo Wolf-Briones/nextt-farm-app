@@ -1,9 +1,10 @@
-import {ComingSoonIA} from "@/components/game/ia/ComingSoonIA";
+
+import { PredictionDashboard } from "@/components/game/ia/PredictionDashboard";
 
 export default function IaPage() {
   return (
     <main className="w-full">
-      <ComingSoonIA />
+      < PredictionDashboard/>
     </main>
   )
 }
